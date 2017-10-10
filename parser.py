@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Description: Parser/processor for CBon notation language
+Description: Parser/processor for tbon notation language
 Author: Mike Ellis
 Copyright 2017 Ellis & Grant, Inc.
 """
@@ -15,7 +15,7 @@ from parsimonious.grammar import Grammar
 
 #pylint: disable=anomalous-backslash-in-string
 def parse(source):
-    """Parse CBon Source"""
+    """Parse tbon Source"""
     grammar = Grammar(
         """
         melody = bar+ ws*
@@ -50,7 +50,7 @@ def parse(source):
 
 class MidiPreEvaluator():
     """
-    Parses and evaluates a CBon source and produces a time-ordered list of
+    Parses and evaluates a tbon source and produces a time-ordered list of
     sub-beat durations for each beat.
     """
     #pylint: disable=dangerous-default-value
@@ -65,7 +65,7 @@ class MidiPreEvaluator():
     #pylint: enable=dangerous-default-value
 
     def eval(self, source, verbosity=2):
-        """Evaluate CBon source"""
+        """Evaluate tbon source"""
         node = parse(source) if isinstance(source, str) else source
         method = getattr(self, node.expr_name, lambda node, children: children)
         ## Recursively evaluate subtree
@@ -109,7 +109,7 @@ class MidiPreEvaluator():
     def beat(self, node, children):
         """
         Compute subbeat duration for current beat in current tempo.
-        DESIGN NOTE: CBon will not support changing the tempo within
+        DESIGN NOTE: tbon will not support changing the tempo within
         a beat.
         """
         state = self.processing_state
@@ -122,7 +122,7 @@ class MidiPreEvaluator():
 
 class MidiEvaluator():
     """
-    Parses and evaluates a CBon source and produces a time-ordered list of
+    Parses and evaluates a tbon source and produces a time-ordered list of
     tuples representing midi note events. Each tuple consists of
       * midi pitch number
       * start time in seconds
@@ -155,7 +155,7 @@ class MidiEvaluator():
         self.processing_state['octave'] = midi_octave_number
 
     def eval(self, source, verbosity=2):
-        """Evaluate CBon source"""
+        """Evaluate tbon source"""
         ## Preprocess once only.
         if self.subbeat_lengths is None:
             mp = MidiPreEvaluator(tempo=self.processing_state['tempo'])
