@@ -5,7 +5,7 @@ When run as a script, this module creates midi files of
   Twinkle Twinkle in D
   Bernstein's America chorus in C from West Side Story.
 
-You can import it and use the make_midi() function to create midi files from
+Import it and use the make_midi() function to create midi files from
 your own tbon input.
 
 Author: Mike Ellis
@@ -45,12 +45,16 @@ def make_midi(source, outfile, tempo=120, transpose=0,
     ## and MIDIFile wants input in beats.
     tbon.eval(source, verbosity=0)
     notes = tbon.transpose_output(transpose)
-
+    print(notes)
     MyMIDI = MIDIFile(1, adjust_origin=True)  # One track
     MyMIDI.addTempo(track, 0, tempo)
 
     for pitch, start, stop in notes:
-        MyMIDI.addNote(track, channel, pitch, start, stop - start, volume)
+        if pitch is not None:
+            MyMIDI.addNote(track, channel,
+                           pitch, start,
+                           stop - start,
+                           volume)
 
     with open(outfile, "wb") as output_file:
         MyMIDI.writeFile(output_file)

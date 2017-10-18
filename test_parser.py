@@ -13,6 +13,14 @@ def test_pre_evaluation():
     mp.eval('#d - ef z |')
     assert mp.output == [0.5, 0.5, 0.25, 0.5]
 
+def test_chord_pre_evaluation():
+    mp = MidiPreEvaluator()
+    mp.eval('(ac) - - - |')
+    assert mp.output == [0.5, 0.5, 0.5, 0.5]
+    mp = MidiPreEvaluator()
+    mp.eval('c (ac) - -  |')
+    assert mp.output == [0.5, 0.5, 0.5, 0.5]
+
 def test_tempo_change():
     mp = MidiPreEvaluator()
     mp.eval('#d - T=60 ef z |')
@@ -53,6 +61,33 @@ def test_melody():
              [(63, 0.0, 1.25,), (59, 1.25, 1.5), (60, 1.5, 2.0)],
              octave=5)
 
+def test_chord():
+    evaluate('(ab)- c |',
+             [(57, 0.0, 0.5), (59, 0.0, 0.5), (60, 0.5, 1.0)],
+             octave=5)
+    evaluate('c (ab)- c |',
+             [(60, 0, 0.5), (57, 0.5, 1.0), (59, 0.5, 1.0), (60, 1.0, 1.5)],
+             octave=5)
+    evaluate('c (ab)(cd) c |',
+             [(60, 0, 0.5), (57, 0.5, 0.75), (59, 0.5, 0.75), (60, 0.75, 1.0), (62, 0.75, 1.0), (60, 1.0, 1.5)],
+             octave=5)
+
+def test_roll():
+    evaluate('(:ab) |',
+             [(57, 0.0, 0.5), (59, 0.25, 0.5)],
+             octave=5)
+    evaluate('(:ab) - |',
+             [(57, 0.0, 1.0), (59, 0.25, 1.0)],
+             octave=5)
+    evaluate('c(:ab) - |',
+             [(60, 0.0, 0.25), (57, 0.25, 1.0), (59, 0.375, 1.0)],
+             octave=5)
+
+def test_comment():
+    evaluate('/* This is a comment! */', [])
+    evaluate('/* This is a comment! */ c | ', [(0, 0.0, 0.5)])
+    evaluate('/* This is a comment! */ c | /* and another */', [(0, 0.0, 0.5)])
+
 def test_numbers_as_pitches():
     m = MidiEvaluator(pitch_order=tuple('1234567'))
     m.eval('#2 - | -^3 1 |')
@@ -67,6 +102,12 @@ def test_transpose():
     dn1 = m.transpose_output(-1)
     assert dn1 == [(62, 0.0, 1.25,), (75, 1.25, 1.5), (71, 1.5, 2.0)]
 
+def test_transpose_with_rests():
+    m = MidiEvaluator(pitch_order=tuple('1234567'))
+    m.eval('5 - | z 1 |')
+    assert m.output == [(55, 0.0, 1.0), (None, 1.0, 1.5), (60, 1.5, 2.0)]
+    up1 = m.transpose_output(1)
+    assert up1 == [(56, 0.0, 1.0), (None, 1.0, 1.5), (61, 1.5, 2.0)]
 
 def test_bar_accidentals():
     evaluate('c @d d | d - - |',
