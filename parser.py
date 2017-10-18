@@ -27,13 +27,15 @@ def parse(source):
         floatnum = ~r"\d*\.?\d+"i
         beat = subbeat+
         barline = "|"
-        extendable = chord / roll / pitch / rest
+        extendable = chord / roll / ornament / pitch / rest
         pitch = octave* alteration? pitchname
         chord = chordstart pitch pitch+ rparen
         chordstart = "("
         rparen = ")"
         roll = rollstart pitch pitch+ rparen
         rollstart = "(:"
+        ornament = ornamentstart pitch pitch+ rparen
+        ornamentstart = "(~"
         subbeat = extendable / hold
         rest = "z"
         hold = "-"
@@ -59,6 +61,9 @@ CHORD = 1
 ENDCHORD = 2
 ROLL = 3
 ENDROLL = 4
+ORNAMENT = 5
+ENDORNAMENT = 6
+
 
 class MidiPreEvaluator():
     """
@@ -226,29 +231,35 @@ class MidiEvaluator():
         end = None
         in_chord = None
         duration = None
-        roll_duration = None
+        roll_remaining = None
         def transition(new):
             """ Note/Chord transitions """
-            nonlocal start, end, in_chord, duration, roll_duration
+            nonlocal start, end, in_chord, duration, roll_remaining
             change = (in_chord, new)
             print("transition: {}".format(change))
-            if change in ((None, NOTE), (None, CHORD), (None, ROLL)):
+            if change in ((None, NOTE), (None, CHORD),
+                          (None, ROLL), (None, ORNAMENT)):
                 start = 0
                 end = duration
                 if change[1] == ROLL:
-                    roll_duration = duration
+                    roll_remaining = duration
             elif change in ((CHORD, CHORD), (CHORD, ENDCHORD)):
                 pass
-            elif change in ((NOTE, ROLL), (ENDCHORD, ROLL), (ENDROLL, ROLL)):
+            elif change in ((NOTE, ROLL), (ENDCHORD, ROLL),
+                            (ENDROLL, ROLL), (ENDORNAMENT, ROLL)):
                 ## Beginning of roll. First note contains full duration.
-                roll_duration = duration
+                roll_remaining = duration
                 start = end
                 end += duration
             elif change in ((ROLL, ROLL), (ROLL, ENDROLL)):
-                start += roll_duration - duration
-            elif change in ((NOTE, NOTE), (NOTE, CHORD),
-                            (ENDCHORD, CHORD), (ENDCHORD, NOTE),
-                            (ENDROLL, CHORD), (ENDROLL, NOTE)):
+                ## Advance the start time by one sub-subbeat
+                print("start={}, roll_remaining={}, duration={}".format(
+                    start, roll_remaining, duration))
+                start += roll_remaining - duration
+                roll_remaining = duration
+            else:
+                ## All other transitions advance sequentially with each new note
+                ## starting at the end of the prior note.
                 start = end
                 end += duration
             in_chord = new
@@ -289,6 +300,7 @@ class MidiEvaluator():
         Close any pending accumulations
         Initialize the state machine for chord tone counting.
         """
+
         state = self.processing_state
         for note in state['notes']:
             if len(note) > 1:
@@ -316,6 +328,27 @@ class MidiEvaluator():
         state['in_chord'] = ROLL
         state['chord_tone_count'] = 0
 
+    def ornamentstart(self, node, children):
+        """ Init an ornament """
+        self.paren_start(ORNAMENT)
+
+    def paren_start(self, kind):
+        """
+        Close any pending accumulations
+        Initialize the state machine for chord tone counting.
+        `kind` must be one of: CHORD, ROLL, ORNAMENT
+        """
+        state = self.processing_state
+        for note in state['notes']:
+            if len(note) > 1:
+                self.output.append(note)
+
+        state['notes'] = []
+        state['subbeats'] += 1
+
+        state['in_chord'] = kind
+        state['chord_tone_count'] = 0
+
     def pitch(self, node, children):
         """
         Deal with chord tones.
@@ -337,10 +370,30 @@ class MidiEvaluator():
             ## to the full subbeat duration.
             count = state['chord_tone_count']
             subsub_duration = state['notes'][-1][1]/count
+            duration = 0
             for i in range(-1, -count, -1):
-                duration = abs(i)*subsub_duration
+                duration += subsub_duration
                 print("i={},Adjusted duration = {}".format(i, duration))
                 state['notes'][i][1] = duration
+
+        if state['in_chord'] == ORNAMENT:
+            print("Closing ornament")
+            state['notes'][-1][2] = ENDORNAMENT
+            ## Adjust starts and durations
+            ## Before adjustments all durations are equal
+            ## to the full subbeat duration.
+            count = state['chord_tone_count']
+            subsub_duration = state['notes'][-1][1]/count
+            for i in range(-1, -(count + 1), -1):
+                duration = subsub_duration
+                print("i={},Adjusted duration = {}".format(i, duration))
+                state['notes'][i][1] = duration
+            ## Ornament tones (other than the last) do not sustain,
+            ## so flush all but the last to the output list
+            for i in range(-count, -1):
+                self.output.append(state['notes'][i])
+            ## Keep on the last in the extendable note list
+            state['notes'] = [state['notes'][-1]]
 
         elif state['in_chord'] == CHORD:
             state['notes'][-1][2] = ENDCHORD

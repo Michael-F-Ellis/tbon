@@ -2,6 +2,7 @@
 To be run with pytest
 """
 from parser import MidiEvaluator, MidiPreEvaluator
+from pytest import approx
 #pylint: disable=missing-docstring, invalid-name, singleton-comparison
 
 
@@ -69,7 +70,8 @@ def test_chord():
              [(60, 0, 0.5), (57, 0.5, 1.0), (59, 0.5, 1.0), (60, 1.0, 1.5)],
              octave=5)
     evaluate('c (ab)(cd) c |',
-             [(60, 0, 0.5), (57, 0.5, 0.75), (59, 0.5, 0.75), (60, 0.75, 1.0), (62, 0.75, 1.0), (60, 1.0, 1.5)],
+             [(60, 0, 0.5), (57, 0.5, 0.75), (59, 0.5, 0.75),
+              (60, 0.75, 1.0), (62, 0.75, 1.0), (60, 1.0, 1.5)],
              octave=5)
 
 def test_roll():
@@ -81,6 +83,18 @@ def test_roll():
              octave=5)
     evaluate('c(:ab) - |',
              [(60, 0.0, 0.25), (57, 0.25, 1.0), (59, 0.375, 1.0)],
+             octave=5)
+    evaluate('(:abcde) - |',
+             [(57, 0.0, 1.0), (59, 0.1, 1.0), (60, 0.2, 1.0),
+              (62, 0.3, 1.0), (64, 0.4, 1.0)],
+             octave=5)
+
+def test_ornament():
+    evaluate('(~ab) |',
+             [(57, 0.0, 0.25), (59, 0.25, 0.5)],
+             octave=5)
+    evaluate('(~ab) - |',
+             [(57, 0.0, 0.25), (59, 0.25, 1.0)],
              octave=5)
 
 def test_comment():
@@ -139,4 +153,5 @@ def evaluate(source, expected, octave=0):
     m = MidiEvaluator()
     m.set_octave(octave)
     m.eval(source)
-    assert m.output == expected
+    for i, t in enumerate(m.output):
+        assert t == approx(expected[i])
