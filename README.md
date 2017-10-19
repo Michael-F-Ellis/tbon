@@ -69,13 +69,13 @@ Here's *Happy Birthday* in F major represented in tbon.
     @333 @666 | 5-^3 -/1- |
 ```
   * Chords
-    * Pitches inside `( )` are sounded simultaneous and sustained.
+    * Pitches inside `( )` are sounded simultaneously and sustained.
     * Duration works the same as for individual notes.
     * Melody direction rules apply to pitches in the order specified as though the parentheses did not exist. This also applies to Rolls and Ornaments (see below).
   * Rolls
-    * Pitches inside `(: ) are attacked in sequence over the duration of 1 sub-beat and sustained afterwards in the same manner as chords.
+    * Pitches inside `(: )` are attacked in sequence over the duration of 1 sub-beat and sustained afterwards in the same manner as chords.
   * Ornaments
-    * Pitches inside `(: ) are attacked in sequence over the  duration of 1 sub-beat. 
+    * Pitches inside `(~ )` are attacked in sequence over the  duration of 1 sub-beat. 
     * Each pitch save the last ends when its successor begins.
     * The last pitch may be sustained by hyphens following the ornament.
     
