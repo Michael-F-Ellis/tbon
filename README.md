@@ -3,7 +3,7 @@ Typographic Beat-Oriented Notation for music
 
 Tbon is a musical language I developed for my own use about a decade ago.  It's a quick notation shorthand for writing melodies -- by hand or with a computer keyboard -- that also aims to be 'readable' in the sense that it's possible to play from it by sight.
 
-Over the years I'm made several attempt to write a parser using regexes but never found time to get it working properly. I recently came across Erik Rose's [Parsimonious](https://github.com/erikrose/parsimonious) Python PEG and had a working grammar within a couple of hours. I can't say enough good things about Parsimonious.
+Over the years I'm made several attempts to write a parser using regexes but never found time to get it working properly. I recently came across Erik Rose's [Parsimonious](https://github.com/erikrose/parsimonious) Python PEG and had a working grammar within a couple of hours. I can't say enough good things about Parsimonious.
 
 This repo is very much *alpha* software. That being said, the parser and evaluator are passing all tests and it's possible to write melodies and convert them to midi files quite easily. Moreover, I don't anticipate making any breaking changes to the language at this point (I've been tinkering with the design for ten years now so it feels pretty much final in terms of basic syntax and capabilities).
 
@@ -49,6 +49,7 @@ Here's *Happy Birthday* in F major represented in tbon.
           * Thus, `c g` will put the g below the c since the 4th below is smaller than the 5th above.
           * To select the more distant upper pitch, you'd write `c ^g`
           * Similarly you'd write 'c /d' to put choose the d a 7th below the c.
+          * The first pitch in a melody is relative to Middle C (midi #60). 
   
   * Note durations: tbon can represent *any* rhythm that can be represented in conventional music notation.
     * Hyphen `-` indicates continuation within and across beats (i.e. a tie).
@@ -58,7 +59,7 @@ Here's *Happy Birthday* in F major represented in tbon.
     * `a - b - | - - c -` | --> 2 beats for `a`, 4 for `b`, 2 for `c`
     * `abc c--d e f` | --> triplet `abc`, 0.75 dotted `c`, 0.25 `d`, 1 each `e` and `f`.
     
-Here's the chorus of Leonard Bernstein's *America* theme for West Side Story. I've shown it with numerical pitches just to illustrate that tbon supports those. More importantly, notice how easily tbon represents Bernstein's shifts between 6/8 and 3/4 time on alternate bars 
+  * Here's the chorus of Leonard Bernstein's *America* theme for West Side Story. I've shown it with numerical pitches just to illustrate that tbon supports those. More importantly, notice how easily tbon represents Bernstein's shifts between 6/8 and 3/4 time on alternate bars 
 
 
 ```
@@ -67,7 +68,17 @@ Here's the chorus of Leonard Bernstein's *America* theme for West Side Story. I'
     @777 @333 | 2-@7 -4- |
     @333 @666 | 5-^3 -/1- |
 ```
-
+  * Chords
+    * Pitches inside `( )` are sounded simultaneous and sustained.
+    * Duration works the same as for individual notes.
+    * Melody direction rules apply to pitches in the order specified as though the parentheses did not exist. This also applies to Rolls and Ornaments (see below).
+  * Rolls
+    * Pitches inside `(: ) are attacked in sequence over the duration of 1 sub-beat and sustained afterwards in the same manner as chords.
+  * Ornaments
+    * Pitches inside `(: ) are attacked in sequence over the  duration of 1 sub-beat. 
+    * Each pitch save the last ends when its successor begins.
+    * The last pitch may be sustained by hyphens following the ornament.
+    
 ## Contributing
 All suggestions and questions are welcome. I'd especially welcome help putting together a good setup.py to make it easy to put tbon on PyPi. As this is my first serious attempt at writing a parser, I'd also welcome suggestions for improving what I presently have (though it seems to be working rather well at the moment). See the issues section for more ideas.
 
