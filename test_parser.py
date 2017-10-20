@@ -48,6 +48,8 @@ def test_melody():
     evaluate('#d - | - - |', [(3, 0.0, 2.0)])
     ## Flat, Rest pitch is None
     evaluate('@e - | z - |', [(3, 0.0, 1.0), (None, 1.0, 2.0)])
+    ## Underscore is also a rest
+    evaluate('@e - | _ - |', [(3, 0.0, 1.0), (None, 1.0, 2.0)])
     ## Divided beat, octave up
     evaluate('#d - | -e - |', [(3, 0.0, 1.25,), (4, 1.25, 2.0)])
     ## Octave up remains for subsequent pitch

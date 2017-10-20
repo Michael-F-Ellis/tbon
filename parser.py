@@ -37,7 +37,7 @@ def parse(source):
         ornament = ornamentstart pitch pitch+ rparen
         ornamentstart = "(~"
         subbeat = extendable / hold
-        rest = "z"
+        rest = "_" / "z"
         hold = "-"
         octave = octave_up / octave_down
         alteration = doublesharp / sharp / doubleflat / flat / natural
@@ -106,17 +106,17 @@ class MidiPreEvaluator():
     def tempo(self, node, children):
         """ Install a new tempo """
         state = self.processing_state
-        newtempo = float(node.children[1].text)
-        assert newtempo != 0.0
+        newtempo = int(round(float(node.children[1].text)))
+        assert newtempo != 0
         state['basetempo'] = state['tempo'] = newtempo
 
 
     def relativetempo(self, node, children):
         """ Adjust the current tempo without altering the base tempo """
         state = self.processing_state
-        newtempo = float(node.children[1].text)
-        assert newtempo != 0.0
-        state['tempo'] = newtempo * state['basetempo']
+        xtempo = float(node.children[1].text)
+        assert xtempo != 0.0
+        state['tempo'] = int(round(xtempo * state['basetempo']))
 
     def subbeat(self, node, children):
         """
