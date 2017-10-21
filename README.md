@@ -79,6 +79,16 @@ Here's *Happy Birthday* in F major represented in tbon.
     * Each pitch save the last ends when its successor begins.
     * The last pitch may be sustained by hyphens following the ornament.
     
+  * Tempo
+    * Tbon supports two kinds of tempo markers, absolute and relative.
+    * Either may appear anywhere except within a beat.
+    * Absolute tempo is specified like this in beats per minute:  `T=100`
+    * Relative tempo is specified like this: `t=0.9`
+    * Relative tempo is a floating point value greater than 0 and less than or equal to 1.0
+    * Relative tempo represents a fraction of the most recent absolute tempo.
+    * `T=100 a b t=0.9 c d | t=1.0 e f g a |` means "Play the first two notes at 100 bpm, the next two at 90 bpm and the remainder at 100 bpm.
+    * Relative tempi are multiplied by the current absolute tempo and the result is rounded to the nearest integer.
+    
 ## Contributing
 All suggestions and questions are welcome. I'd especially welcome help putting together a good setup.py to make it easy to put tbon on PyPi. As this is my first serious attempt at writing a parser, I'd also welcome suggestions for improving what I presently have (though it seems to be working rather well at the moment). See the issues section for more ideas.
 
