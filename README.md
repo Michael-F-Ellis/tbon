@@ -89,8 +89,8 @@ Here's *Happy Birthday* in F major represented in tbon.
     * Either may appear anywhere except within a beat.
     * Absolute tempo is specified like this in beats per minute:  `T=100`
     * Relative tempo is specified like this: `t=0.9`
-    * Relative tempo is a floating point value greater than 0 and less than or equal to 1.0
-    * Relative tempo represents a fraction of the most recent absolute tempo.
+    * Relative tempo is a floating point value greater than 0.
+    * Relative tempo represents a fraction (or multiple) of the most recent absolute tempo.
     * `T=100 a b t=0.9 c d | t=1.0 e f g a |` means "Play the first two notes at 100 bpm, the next two at 90 bpm and the remainder at 100 bpm.
     * Relative tempi are multiplied by the current absolute tempo and the result is rounded to the nearest integer.
     
