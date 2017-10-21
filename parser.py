@@ -269,8 +269,8 @@ class MidiEvaluator():
                 end += duration
             elif change in ((ROLL, ROLL), (ROLL, ENDROLL)):
                 ## Advance the start time by one sub-subbeat
-                print("start={}, roll_remaining={}, duration={}".format(
-                    start, roll_remaining, duration))
+                #print("start={}, roll_remaining={}, duration={}".format(
+                #    start, roll_remaining, duration))
                 start += roll_remaining - duration
                 roll_remaining = duration
             else:
@@ -379,7 +379,7 @@ class MidiEvaluator():
         """
         state = self.processing_state
         if state['in_chord'] == ROLL:
-            print("Closing roll")
+            #print("Closing roll")
             state['notes'][-1][2] = ENDROLL
             ## Adjust starts and durations
             ## Before adjustments all durations are equal
@@ -389,11 +389,11 @@ class MidiEvaluator():
             duration = 0
             for i in range(-1, -count, -1):
                 duration += subsub_duration
-                print("i={},Adjusted duration = {}".format(i, duration))
+                #print("i={},Adjusted duration = {}".format(i, duration))
                 state['notes'][i][1] = duration
 
         if state['in_chord'] == ORNAMENT:
-            print("Closing ornament")
+            #print("Closing ornament")
             state['notes'][-1][2] = ENDORNAMENT
             ## Adjust starts and durations
             ## Before adjustments all durations are equal
@@ -402,7 +402,7 @@ class MidiEvaluator():
             subsub_duration = state['notes'][-1][1]/count
             for i in range(-1, -(count + 1), -1):
                 duration = subsub_duration
-                print("i={},Adjusted duration = {}".format(i, duration))
+                #print("i={},Adjusted duration = {}".format(i, duration))
                 state['notes'][i][1] = duration
             ## Ornament tones (other than the last) do not sustain,
             ## so flush all but the last to the output list
