@@ -19,9 +19,14 @@ There's no installer at present so you'll need to clone the repo or copy the fil
 * To create a midi file, you'll need MIDIUtil (pip install MIDIUtil)
 
 ## Quick Start
-Run `python tbon_midi.py` from within the repo directory. When run as a script, it creates 3 sample files midi files (Happy Birthday, Twinkle Twinkle, and the chorus from Bernstein's 'America' (West Side Story).  
+Begin by building the examples. Assuming you've cloned into `~/tbon` do the following:
+```
+cd ~/tbon
+./tbon.py examples/*.tb*
+```
+Tbon will process the notation source files in the examples directory and create MIDI files you can play or import into your favorite notation editor or DAW.
 
-Then look within `tbon_midi.py` to see how use the `make_midi()` function to process your own scores.
+You can create your own input files with a text editor using the syntax described below. I suggest making a symbolic link from somewhere in your path to `~/tbon.py` so you can save your work outside the repo.
 
 To dive deeper, look at `parser.py` and `test_parser.py`.
 
