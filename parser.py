@@ -73,6 +73,7 @@ class MidiPreEvaluator():
     #pylint: disable=dangerous-default-value
     def __init__(self, tempo=120):
         self.output = []
+        self.meta_output = []
         self.processing_state = dict(
             basetempo=tempo,
             tempo=tempo,
@@ -109,7 +110,7 @@ class MidiPreEvaluator():
         newtempo = int(round(float(node.children[1].text)))
         assert newtempo != 0
         state['basetempo'] = state['tempo'] = newtempo
-
+        self.insert_tempo_meta(state)
 
     def relativetempo(self, node, children):
         """ Adjust the current tempo without altering the base tempo """
@@ -117,6 +118,7 @@ class MidiPreEvaluator():
         xtempo = float(node.children[1].text)
         assert xtempo != 0.0
         state['tempo'] = int(round(xtempo * state['basetempo']))
+        self.insert_tempo_meta(state)
 
     def subbeat(self, node, children):
         """
@@ -132,12 +134,24 @@ class MidiPreEvaluator():
         a beat.
         """
         state = self.processing_state
-        beat_length = 60/state['tempo']
+        beat_length = 1
         subbeat_length = beat_length/state['subbeats']
         state['subbeats'] = 0
+        state['beat_index'] += 1
+        ## if no tempo meta at end of first beat, insert the default.
+        if state['beat_index'] == 1:
+            for m in self.meta_output:
+                if m[0] == 'T':
+                    break
+            else:
+                self.insert_tempo_meta(state, index=0)
         self.output.append(subbeat_length)
 
-
+    def insert_tempo_meta(self, state, index=None):
+        """ Append a tempo meta event """
+        if index is None:
+            index = state['beat_index']
+        self.meta_output.append(('T', index, state['tempo']))
 
 
 
@@ -157,6 +171,7 @@ class MidiEvaluator():
         self.pitch_order = pitch_order
         self.pitch_midinumber = dict(zip(pitch_order, (0, 2, 4, 5, 7, 9, 11)))
         self.output = []
+        self.meta_output = []
         self.processing_state = dict(
             notes=[],
             tempo=tempo,
@@ -185,6 +200,7 @@ class MidiEvaluator():
             mp = MidiPreEvaluator(tempo=self.processing_state['tempo'])
             mp.eval(source, verbosity=0)
             self.subbeat_lengths = mp.output
+            self.meta_output = mp.meta_output
             #print("PreEval {}".format(mp.output))
 
         node = parse(source) if isinstance(source, str) else source
@@ -236,7 +252,7 @@ class MidiEvaluator():
             """ Note/Chord transitions """
             nonlocal start, end, in_chord, duration, roll_remaining
             change = (in_chord, new)
-            print("transition: {}".format(change))
+            #print("transition: {}".format(change))
             if change in ((None, NOTE), (None, CHORD),
                           (None, ROLL), (None, ORNAMENT)):
                 start = 0

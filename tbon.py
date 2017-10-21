@@ -1,23 +1,18 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-When run as a script, this module creates midi files of
-  Happy Birthday in F,
-  Twinkle Twinkle in D
-  Bernstein's America chorus in C from West Side Story.
-
-Import it and use the make_midi() function to create midi files from
-your own tbon input.
-
+Description: Command line executable.
 Author: Mike Ellis
 Copyright 2017 Ellis & Grant, Inc.
-Adapted from example at https://github.com/MarkCWirt/MIDIUtil
 """
+import os
+import argparse
 from midiutil import MIDIFile
 from parser import MidiEvaluator
 
 def make_midi(source, outfile, transpose=0,
               volume=100, track=0, channel=0,
-              octave=5, numeric=False):
+              octave=5, numeric=True):
     """
     Parse and evaluate the source string. Write the output
     to the specified outfile name.
@@ -43,7 +38,6 @@ def make_midi(source, outfile, transpose=0,
     tbon.eval(source, verbosity=0)
     notes = tbon.transpose_output(transpose)
     meta = tbon.meta_output
-    print(notes)
     MyMIDI = MIDIFile(1, adjust_origin=True)  # One track
     #MyMIDI.addTempo(track, 0, tempo)
 
@@ -60,33 +54,26 @@ def make_midi(source, outfile, transpose=0,
 
     with open(outfile, "wb") as output_file:
         MyMIDI.writeFile(output_file)
-
 if __name__ == '__main__':
-    #pylint: disable=invalid-name
-    happy = """
-    T=120
-    cc | d c f | e - cc |
-    d c ^g | f - cc |
-    t=0.8
-    ^c a f | t=0.6 e d t=0.8 ^@bb |
-    a f g | f - - |
-    """
-    make_midi(happy, 'happy.mid')
-
-    twinkle = """
-    T=120
-    11 ^55 66 5 | 44 33 22 1 |
-    11 ^55 66 5 | 44 33 22 1 |
-    ^55 44 33 2 | 55 44 33 2 |
-    11 ^55 66 5 | 44 33 22 1 |
-    """
-    make_midi(twinkle, "twinkle.mid", transpose=2, numeric=True)
-
-    bernstein_america = """
-    T=120
-    ^555 111 | 6-4 -1- |
-    ^555  111 | 2-7 -5- |
-    @777 @333 | 2-@7 -4- |
-    @333 @666 | 5-^3 -/1- |
-    """
-    make_midi(bernstein_america, "bernstein_america.mid", numeric=True)
+    _parser = argparse.ArgumentParser()
+    _parser.add_argument('-x', '--transpose', type=int, default=0,
+                         help="Number of semitones to transpose up or down"
+                         "The default is '1234567'.")
+    _parser.add_argument("filename", nargs='+',
+                         help="one or more files of tbon notation")
+    _args = _parser.parse_args()
+    for f in _args.filename:
+        _name, _ext = os.path.splitext(f)
+        if _ext.lower() not in (".tba", ".tbn"):
+            raise Exception("File xxtension must be .tba or .tbn")
+        else:
+            _numeric = _ext.lower() == ".tbn"
+        _outfile = _name + ".mid"
+        print("Processing {}".format(f))
+        with open(f) as infile:
+            _source = infile.read()
+            print(_source)
+        make_midi(_source, _outfile,
+                  transpose=_args.transpose,
+                  numeric=_numeric)
+        print("Created {}".format(_outfile))
