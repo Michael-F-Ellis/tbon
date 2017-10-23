@@ -93,7 +93,18 @@ Here's *Happy Birthday* in F major represented in tbon.
     * Relative tempo represents a fraction (or multiple) of the most recent absolute tempo.
     * `T=100 a b t=0.9 c d | t=1.0 e f g a |` means "Play the first two notes at 100 bpm, the next two at 90 bpm and the remainder at 100 bpm.
     * Relative tempi are multiplied by the current absolute tempo and the result is rounded to the nearest integer.
-    
+  
+  * Key Signatures
+    * All common major and minor key signatures are recognized. Use lower case for minor, upper for major.
+    * Example: `K=b` for B minor, `K=E@` for E-flat major.
+    * Majors: `C G D A  E  B  C@ F# G@ C# D@ A@ E@ B@ F`
+    * Minors: `a e b f# c# g# a@ d# e@ a# b@ f  c  g  d`
+    * Placement: At the start of any measure before the first beat of the measure.
+    * You may omit accidentals that are in the key when writing notation.
+    * Numeric notation is interpreted so that `1` corresponds to the tonic of the most recent key signature.
+      * In minor keys the 3rd, 6th, and 7th degrees are flatted.
+      * Example: `K=f 12 34 56 71 |` produces the natural minor scale starting on F.
+  
 ## Contributing
 All suggestions and questions are welcome. I'd especially welcome help putting together a good setup.py to make it easy to put tbon on PyPi. As this is my first serious attempt at writing a parser, I'd also welcome suggestions for improving what I presently have (though it seems to be working rather well at the moment). See the issues section for more ideas.
 
