@@ -11,7 +11,7 @@ from midiutil import MIDIFile
 from parser import MidiEvaluator
 
 def make_midi(source, outfile, transpose=0,
-              volume=100, track=0, channel=0,
+              track=0, channel=0,
               octave=5, numeric=True):
     """
     Parse and evaluate the source string. Write the output
@@ -53,12 +53,12 @@ def make_midi(source, outfile, transpose=0,
             #print(accidentals, acc_type, minor)
             MyMIDI.addKeySignature(track, time, accidentals, acc_type, minor)
 
-    for pitch, start, stop in notes:
+    for pitch, start, stop, velocity in notes:
         if pitch is not None:
             MyMIDI.addNote(track, channel,
                            pitch, start,
                            stop - start,
-                           volume)
+                           int(velocity * 127))
 
     with open(outfile, "wb") as output_file:
         MyMIDI.writeFile(output_file)

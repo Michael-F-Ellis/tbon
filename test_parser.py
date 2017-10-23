@@ -114,12 +114,12 @@ def test_comment():
     evaluate('/* This is a comment! */ c | /* and another */', [(0, 0.0, 1.0)])
 
 def test_numbers_as_pitches():
-    m = MidiEvaluator(pitch_order=tuple('1234567'))
+    m = MidiEvaluator(pitch_order=tuple('1234567'), ignore_velocity=True)
     m.eval('#2 - | -^3 1 |')
     assert m.output == [(63, 0.0, 2.50), (76, 2.50, 3.0), (72, 3.0, 4.0)]
 
 def test_transpose():
-    m = MidiEvaluator(pitch_order=tuple('1234567'))
+    m = MidiEvaluator(pitch_order=tuple('1234567'), ignore_velocity=True)
     m.eval('#2 - | -^3 1 |')
     assert m.output == [(63, 0.0, 2.50,), (76, 2.50, 3.0), (72, 3.0, 4.0)]
     up1 = m.transpose_output(1)
@@ -128,7 +128,7 @@ def test_transpose():
     assert dn1 == [(62, 0.0, 2.50,), (75, 2.50, 3.0), (71, 3.0, 4.0)]
 
 def test_transpose_with_rests():
-    m = MidiEvaluator(pitch_order=tuple('1234567'))
+    m = MidiEvaluator(pitch_order=tuple('1234567'), ignore_velocity=True)
     m.eval('5 - | z 1 |')
     assert m.output == [(55, 0.0, 2.0), (None, 2.0, 3.0), (60, 3.0, 4.0)]
     up1 = m.transpose_output(1)
@@ -205,15 +205,25 @@ def test_key():
              octave=5,
              numeric=True)
 
+def test_velocity():
+    evaluate('c d |',
+             [(60, 0.0, 1.0, 0.8), (62.0, 1.0, 2.0, 0.8)],
+             octave=5,
+             ignore_velocity=False)
+    evaluate('c V=0.9 d |',
+             [(60, 0.0, 1.0, 0.8), (62.0, 1.0, 2.0, 0.9)],
+             octave=5,
+             ignore_velocity=False)
 
-
-def evaluate(source, expected, octave=0, numeric=False):
+def evaluate(source, expected, octave=0,
+             numeric=False, ignore_velocity=True):
     if numeric:
         pitch_order = tuple('1234567')
     else:
         pitch_order = tuple('cdefgab')
 
-    m = MidiEvaluator(pitch_order=pitch_order)
+    m = MidiEvaluator(pitch_order=pitch_order,
+                      ignore_velocity=ignore_velocity)
     m.set_octave(octave)
     m.eval(source)
     for i, t in enumerate(m.output):

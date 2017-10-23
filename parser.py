@@ -21,11 +21,12 @@ def parse(source):
         melody = (comment / bar)+ ws*
         comment = ws* ~r"/\*.*?\*/"i ws*
         bar = (ws* (meta / beat) ws)+ barline
-        meta = key / tempo / relativetempo
+        meta = key / tempo / relativetempo / velocity
         key = "K=" keyname
         keyname = ~r"[a-gA-G](@|#)?"
         tempo = "T=" floatnum
         relativetempo = "t=" floatnum
+        velocity = "V=" floatnum
         floatnum = ~r"\d*\.?\d+"i
         beat = subbeat+
         barline = "|"
@@ -177,8 +178,11 @@ class MidiEvaluator():
     actual Midi NoteOn and NoteOff events and playing playing them is left up
     to other software.
     """
-    def __init__(self, tempo=120, pitch_order=tuple('cdefgab')):
+    def __init__(self, tempo=120,
+                 pitch_order=tuple('cdefgab'),
+                 ignore_velocity=False):
         self.pitch_order = pitch_order
+        self.ignore_velocity = ignore_velocity
         self.pitch_midinumber = dict(zip(pitch_order, (0, 2, 4, 5, 7, 9, 11)))
         self.output = []
         self.meta_output = []
@@ -194,6 +198,7 @@ class MidiEvaluator():
             in_chord=NOTE,
             chord_tone_count=0,
             keyname="C",
+            velocity=0.8,
         )
         self.subbeat_lengths = None
 
@@ -237,9 +242,9 @@ class MidiEvaluator():
         """
         new_output = []
         for note in self.output:
-            pitch, start, stop = note
+            pitch, start, stop, velocity = note
             if pitch is not None:
-                new_output.append((pitch + semitones, start, stop))
+                new_output.append((pitch + semitones, start, stop, velocity))
             else:
                 ## Keep rests unchanged (pitch == None)
                 new_output.append(note)
@@ -296,7 +301,12 @@ class MidiEvaluator():
             pitch = item[0]
             duration = item[1]
             transition(item[2])
-            converted.append((pitch, start, end))
+            velocity = item[3]
+            if self.ignore_velocity:
+                converted.append((pitch, start, end))
+            else:
+                converted.append((pitch, start, end, velocity))
+
         self.output = converted
 
     def tempo(self, node, children):
@@ -312,6 +322,13 @@ class MidiEvaluator():
         newtempo = float(node.children[1].text)
         assert newtempo != 0.0
         state['tempo'] = newtempo * state['basetempo']
+
+    def velocity(self, node, children):
+        """ Change the current velocity """
+        state = self.processing_state
+        newvelocity = float(node.children[1].text)
+        assert 0.0 <= newvelocity <= 1.0
+        state['velocity'] = newvelocity
 
     def bar(self, node, children):
         """ Clear any accidentals """
@@ -489,7 +506,10 @@ class MidiEvaluator():
         if not state['in_chord']:
             state['notes'] = []
             state['subbeats'] += 1
-        state['notes'].append([None, duration, state['in_chord']])
+        state['notes'].append([None, duration,
+                               state['in_chord'],
+                               state['velocity'],
+                              ])
 
     def pitchname(self, node, children):
         """  pitchname = ~"[a-g]"i
@@ -530,7 +550,8 @@ class MidiEvaluator():
         if not state['in_chord']:
             state['notes'] = []
             state['subbeats'] += 1
-        state['notes'].append([pitchnumber, duration, state['in_chord']])
+        state['notes'].append([pitchnumber, duration,
+                               state['in_chord'], state['velocity']])
         state['alteration'] = 0
         state['pitchname'] = pitchname
 
