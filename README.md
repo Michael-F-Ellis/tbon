@@ -105,6 +105,18 @@ Here's *Happy Birthday* in F major represented in tbon.
       * In minor keys the 3rd, 6th, and 7th degrees are flatted.
       * Example: `K=f 12 34 56 71 |` produces the natural minor scale starting on F.
   
+  * Velocity (Loudness)
+    * Specify with `V=` anywhere between (but not within) beats.
+    * Default is V=0.8 which corresponds to midi velocity 101 for all notes.
+    * Allowed values are between 0.0 (silence) and 1.0 (maximum, midi 127).
+    * Affects all following notes until changed.
+    * See examples/echo.tbn for an example.
+        ```
+        /* Testing velocity changes. */
+        V=0.8 12 34 5 - | V=0.5 /12 34 5 - |
+        V=0.8 54 32 1 - | V=0.5 ^54 32 1 - |
+        ```
+  
 ## Contributing
 All suggestions and questions are welcome. I'd especially welcome help putting together a good setup.py to make it easy to put tbon on PyPi. As this is my first serious attempt at writing a parser, I'd also welcome suggestions for improving what I presently have (though it seems to be working rather well at the moment). See the issues section for more ideas.
 
