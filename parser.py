@@ -10,7 +10,7 @@ Copyright 2017 Ellis & Grant, Inc.
 ## pylint: disable=blacklisted-name
 ## pylint: disable=too-many-public-methods
 #######################################################################
-
+import keysigs
 from parsimonious.grammar import Grammar
 
 #pylint: disable=anomalous-backslash-in-string
@@ -21,7 +21,9 @@ def parse(source):
         melody = (comment / bar)+ ws*
         comment = ws* ~r"/\*.*?\*/"i ws*
         bar = (ws* (meta / beat) ws)+ barline
-        meta = tempo / relativetempo
+        meta = key / tempo / relativetempo
+        key = "K=" keyname
+        keyname = ~r"[a-gA-G](@|#)?"
         tempo = "T=" floatnum
         relativetempo = "t=" floatnum
         floatnum = ~r"\d*\.?\d+"i
@@ -112,6 +114,14 @@ class MidiPreEvaluator():
         state['basetempo'] = state['tempo'] = newtempo
         self.insert_tempo_meta(state)
 
+    def key(self, node, children):
+        """ Insert a key signature """
+        state = self.processing_state
+        keyname = node.children[1].text.strip()
+        index = state['beat_index']
+        sig = keysigs.MIDISIGS[keyname]
+        self.meta_output.append(('K', index, sig))
+
     def relativetempo(self, node, children):
         """ Adjust the current tempo without altering the base tempo """
         state = self.processing_state
@@ -183,6 +193,7 @@ class MidiEvaluator():
             bar_accidentals={},
             in_chord=NOTE,
             chord_tone_count=0,
+            keyname="C",
         )
         self.subbeat_lengths = None
 
@@ -505,6 +516,8 @@ class MidiEvaluator():
                                     state['octave'],
                                     state['alteration'])
         alteration = self.get_bar_accidental(pitchname, state['octave'])
+        ## For numeric pitchnames the 'alteration' above includes an
+        ## offset that maps 1 to the tonic of the current key.
 
         pitchnumber = self.pitch_midinumber[pitchname]
         pitchnumber += alteration + 12 * state['octave']
@@ -570,6 +583,12 @@ class MidiEvaluator():
 
         return result
 
+    def keyname(self, node, children):
+        """ Install new keyname """
+        kn = node.text.strip()
+        assert kn in keysigs.KEYSIGS.keys()
+        self.processing_state['keyname'] = kn
+
     def set_bar_accidental(self, pitchname, octave, value):
         """
         Used to support persistent accidentals for the duration of a bar.
@@ -585,9 +604,16 @@ class MidiEvaluator():
         """
         _ = self.processing_state['bar_accidentals']
         try:
-            return _[(pitchname, octave)]
+            bar_accidental = _[(pitchname, octave)]
         except KeyError:
-            return 0
+            ## not among bar accidentals
+            bar_accidental = None
+
+        ## Apply alterations according to
+        ## current key.
+        key = self.processing_state['keyname']
+        #print(pitchname, key, bar_accidental)
+        return keysigs.get_alteration(pitchname, key, bar_accidental)
 
     def clear_bar_accidentals(self):
         """

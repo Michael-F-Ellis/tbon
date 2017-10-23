@@ -1,0 +1,4 @@
+/* Melodic minor scale */
+/* Written first in C major, then in c minor */
+K=C 12 @34 56 71 | 1@7 @65 4@3 21 |
+K=c 12 34 5%6 %71 | 17 65 43 21 |

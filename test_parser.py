@@ -1,6 +1,7 @@
 """
 To be run with pytest
 """
+import keysigs
 from parser import MidiEvaluator, MidiPreEvaluator
 from pytest import approx
 #pylint: disable=missing-docstring, invalid-name, singleton-comparison
@@ -35,6 +36,12 @@ def test_relative_tempo_change():
     assert mp.output == [1.0, 1.0, 0.5, 1.0]
     assert mp.meta_output == [('T', 0, 120), ('T', 2, 60)]
     evaluate('T=120 #d - | t=0.5  - - |', [(3, 0.0, 4.0)])
+
+def test_keysig_insert():
+    mp = MidiPreEvaluator()
+    mp.eval('K=D #d - t=0.5 ef z |')
+    assert mp.output == [1.0, 1.0, 0.5, 1.0]
+    assert mp.meta_output == [('K', 0, (2, 0)), ('T', 0, 120), ('T', 2, 60)]
 
 def test_melody():
     """
@@ -153,8 +160,60 @@ def test_octave_change():
     assert m.octave_change('g', 'b') == 0
     assert m.octave_change('g', 'd') == 0
 
-def evaluate(source, expected, octave=0):
-    m = MidiEvaluator()
+def test_midisigs():
+    assert keysigs.MIDISIGS['a'] == (0, 1)
+    assert keysigs.MIDISIGS['a@'] == (-7, 1)
+    assert keysigs.MIDISIGS['A'] == (3, 0)
+    assert keysigs.MIDISIGS['A@'] == (-4, 0)
+
+def test_get_key_alteration():
+    assert keysigs.get_alteration('c', 'C') == 0
+    assert keysigs.get_alteration('c', 'D') == 1
+    assert keysigs.get_alteration('c', 'a@') == -1
+    assert keysigs.get_alteration('1', 'C') == 0
+    assert keysigs.get_alteration('1', 'D') == 2
+    assert keysigs.get_alteration('1', 'a@') == -4
+
+def test_key():
+    evaluate('K=D c f |',
+             [(61, 0.0, 1.0), (66, 1.0, 2.0)],
+             octave=5)
+    evaluate('K=b c f |',
+             [(61, 0.0, 1.0), (66, 1.0, 2.0)],
+             octave=5)
+    evaluate('K=D 7 3 |',
+             [(61, 0.0, 1.0), (66, 1.0, 2.0)],
+             octave=5,
+             numeric=True)
+    evaluate('K=b 7 3 | K=B 7 3 |',
+             [(57, 0.0, 1.0), (62, 1.0, 2.0), (58, 2.0, 3.0), (63, 3.0, 4.0)],
+             octave=5,
+             numeric=True)
+    evaluate('K=C@ c f |',
+             [(59, 0.0, 1.0), (64, 1.0, 2.0)],
+             octave=5)
+    evaluate('K=c# c f |',
+             [(61, 0.0, 1.0), (66, 1.0, 2.0)],
+             octave=5)
+    evaluate('K=e@ %d d | d d |',
+             [(62, 0.0, 1.0), (62, 1.0, 2.0), (61, 2.0, 3.0), (61, 3.0, 4.0)],
+             octave=5,
+             numeric=False)
+    evaluate('K=e@ %7 7 | 7 #4 @7|',
+             [(62, 0.0, 1.0), (62, 1.0, 2.0),
+              (61, 2.0, 3.0), (57, 3.0, 4.0), (61, 4.0, 5.0)],
+             octave=5,
+             numeric=True)
+
+
+
+def evaluate(source, expected, octave=0, numeric=False):
+    if numeric:
+        pitch_order = tuple('1234567')
+    else:
+        pitch_order = tuple('cdefgab')
+
+    m = MidiEvaluator(pitch_order=pitch_order)
     m.set_octave(octave)
     m.eval(source)
     for i, t in enumerate(m.output):

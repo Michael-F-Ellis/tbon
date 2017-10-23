@@ -44,6 +44,14 @@ def make_midi(source, outfile, transpose=0,
     for m in meta:
         if m[0] == 'T':
             MyMIDI.addTempo(track, m[1], m[2])
+        elif m[0] == 'K':
+            time = m[1]
+            sf, minor = m[2]
+            accidentals = abs(sf)
+            acc_type = int(sf >= 0)
+            #print("Inserting key signature at time {}".format(time))
+            #print(accidentals, acc_type, minor)
+            MyMIDI.addKeySignature(track, time, accidentals, acc_type, minor)
 
     for pitch, start, stop in notes:
         if pitch is not None:
