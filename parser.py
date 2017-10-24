@@ -9,6 +9,7 @@ Copyright 2017 Ellis & Grant, Inc.
 ## pylint: disable=no-self-use, unused-argument
 ## pylint: disable=blacklisted-name
 ## pylint: disable=too-many-public-methods
+## pylint: disable=too-many-instance-attributes
 #######################################################################
 import keysigs
 from parsimonious.grammar import Grammar
@@ -77,10 +78,12 @@ class MidiPreEvaluator():
     def __init__(self, tempo=120):
         self.output = []
         self.meta_output = []
+        self.beat_map = []
         self.processing_state = dict(
             basetempo=tempo,
             tempo=tempo,
             beat_index=0,
+            bar_beat_count=0,
             in_chord=False,
             chord_tone_count=0,
             subbeats=0,
@@ -149,6 +152,7 @@ class MidiPreEvaluator():
         subbeat_length = beat_length/state['subbeats']
         state['subbeats'] = 0
         state['beat_index'] += 1
+        state['bar_beat_count'] += 1
         ## if no tempo meta at end of first beat, insert the default.
         if state['beat_index'] == 1:
             for m in self.meta_output:
@@ -157,6 +161,12 @@ class MidiPreEvaluator():
             else:
                 self.insert_tempo_meta(state, index=0)
         self.output.append(subbeat_length)
+
+    def barline(self, node, children):
+        """ Finish the bar. Add to beat map """
+        state = self.processing_state
+        self.beat_map.append(state['bar_beat_count'])
+        state['bar_beat_count'] = 0
 
     def insert_tempo_meta(self, state, index=None):
         """ Append a tempo meta event """
@@ -186,8 +196,10 @@ class MidiEvaluator():
         self.pitch_midinumber = dict(zip(pitch_order, (0, 2, 4, 5, 7, 9, 11)))
         self.output = []
         self.meta_output = []
+        self.beat_map = ()
         self.processing_state = dict(
             notes=[],
+            basetempo=tempo,
             tempo=tempo,
             beat_index=0,
             subbeats=0,
@@ -217,6 +229,8 @@ class MidiEvaluator():
             mp.eval(source, verbosity=0)
             self.subbeat_lengths = mp.output
             self.meta_output = mp.meta_output
+            self.beat_map = tuple(mp.beat_map)
+
             #print("PreEval {}".format(mp.output))
 
         node = parse(source) if isinstance(source, str) else source
@@ -242,9 +256,11 @@ class MidiEvaluator():
         """
         new_output = []
         for note in self.output:
-            pitch, start, stop, velocity = note
+            pitch = note[0]
             if pitch is not None:
-                new_output.append((pitch + semitones, start, stop, velocity))
+                notelist = list(note)
+                notelist[0] = pitch + semitones
+                new_output.append(tuple(notelist))
             else:
                 ## Keep rests unchanged (pitch == None)
                 new_output.append(note)

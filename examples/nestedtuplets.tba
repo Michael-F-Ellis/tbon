@@ -1,0 +1,13 @@
+/* LilyPond nested tuplets example */
+/* from http://lilypond.org/doc/v2.18/Documentation/notation/writing-rhythms */
+
+/* c4 \tuplet 5/4 { f8 e f \tuplet 3/2 { e[ f g] } } f4 */
+
+/* which can be rendered exactly in tbon as ... */
+
+   ^c f-----e-----f-- ---e---f---g--- f |
+
+/* We can also get the same result by adjusting the tempo */
+/*   and combining the middle two beats into one */
+
+    c t=0.5 f--e--f--e-f-g- t=1.0 f |

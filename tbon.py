@@ -12,7 +12,8 @@ from parser import MidiEvaluator
 
 def make_midi(source, outfile, transpose=0,
               track=0, channel=0,
-              octave=5, numeric=True):
+              octave=5, numeric=True,
+              firstbar=0):
     """
     Parse and evaluate the source string. Write the output
     to the specified outfile name.
@@ -38,6 +39,7 @@ def make_midi(source, outfile, transpose=0,
     tbon.eval(source, verbosity=0)
     notes = tbon.transpose_output(transpose)
     meta = tbon.meta_output
+    beat_map = tbon.beat_map
     MyMIDI = MIDIFile(1, adjust_origin=True)  # One track
     #MyMIDI.addTempo(track, 0, tempo)
 
@@ -62,11 +64,53 @@ def make_midi(source, outfile, transpose=0,
 
     with open(outfile, "wb") as output_file:
         MyMIDI.writeFile(output_file)
+
+    print_beat_map(beat_map, first_bar_number=firstbar)
+
+def print_beat_map(beat_map, first_bar_number=0):
+    """
+    Output the beat map in a nice readable display with
+    beat counts for 10 bars displayed on each line.
+       0: 4 4 4 4 4 4 3 3 4 4
+      10: 4 4 ...
+    """
+    bar_number = 10 * (first_bar_number // 10)
+    pad = ' ' * 4
+    padcount = first_bar_number % 10
+    linelist = []
+    endmap = False
+    remapped = [pad  for _ in range(padcount)] + list(beat_map)
+    linecount = 0
+    print("Beat Map: Number of beats in each bar")
+    while True:
+        label = "{:4d}:".format(bar_number)
+        linelist.append(label)
+        for i in range(10):
+            try:
+                nbeats = remapped[10*linecount + i]
+                if nbeats == pad:
+                    nbstr = nbeats
+                else:
+                    nbstr = "{:4d}".format(nbeats)
+                linelist.append(nbstr)
+            except IndexError:
+                endmap = True
+                linelist.append(pad)
+        print(' '.join(linelist))
+        linelist = []
+        linecount += 1
+        bar_number += 10
+        if endmap:
+            break
+
 if __name__ == '__main__':
     _parser = argparse.ArgumentParser()
     _parser.add_argument('-x', '--transpose', type=int, default=0,
                          help="Number of semitones to transpose up or down"
                          "The default is '1234567'.")
+    _parser.add_argument('-b', '--firstbar', type=int, default=0,
+                         help="The measure number of the first measure."
+                         "(Used to align beat map output)")
     _parser.add_argument("filename", nargs='+',
                          help="one or more files of tbon notation")
     _args = _parser.parse_args()
@@ -83,5 +127,6 @@ if __name__ == '__main__':
             print(_source)
         make_midi(_source, _outfile,
                   transpose=_args.transpose,
-                  numeric=_numeric)
+                  numeric=_numeric,
+                  firstbar=_args.firstbar)
         print("Created {}".format(_outfile))

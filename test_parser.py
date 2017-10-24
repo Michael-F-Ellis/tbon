@@ -36,12 +36,21 @@ def test_relative_tempo_change():
     assert mp.output == [1.0, 1.0, 0.5, 1.0]
     assert mp.meta_output == [('T', 0, 120), ('T', 2, 60)]
     evaluate('T=120 #d - | t=0.5  - - |', [(3, 0.0, 4.0)])
+    evaluate('#d - | t=0.5  - - |', [(3, 0.0, 4.0)])
 
 def test_keysig_insert():
     mp = MidiPreEvaluator()
     mp.eval('K=D #d - t=0.5 ef z |')
     assert mp.output == [1.0, 1.0, 0.5, 1.0]
     assert mp.meta_output == [('K', 0, (2, 0)), ('T', 0, 120), ('T', 2, 60)]
+
+def test_beat_map():
+    mp = MidiPreEvaluator()
+    mp.eval('a b cd | e f - a |')
+    assert mp.beat_map == [3, 4]
+    m = MidiEvaluator(pitch_order=tuple('abcdefg'), ignore_velocity=True)
+    m.eval('a b cd | e f - a |')
+    assert m.beat_map == (3, 4)
 
 def test_melody():
     """
