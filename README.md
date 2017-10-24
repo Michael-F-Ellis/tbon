@@ -63,6 +63,7 @@ Here's *Happy Birthday* in F major represented in tbon.
     * `ab c d -` | --> 0.5 each for `ab`, 1 for `c`, 2 for `d`.
     * `a - b - | - - c -` | --> 2 beats for `a`, 4 for `b`, 2 for `c`
     * `abc c--d e f` | --> triplet `abc`, 0.75 dotted `c`, 0.25 `d`, 1 each `e` and `f`.
+    * See also (examples/rhythms.tba)
     
   * Here's the chorus of Leonard Bernstein's *America* theme for West Side Story. I've shown it with numerical pitches just to illustrate that tbon supports those. More importantly, notice how easily tbon represents Bernstein's shifts between 6/8 and 3/4 time on alternate bars 
 
