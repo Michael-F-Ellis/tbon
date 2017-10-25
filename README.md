@@ -92,13 +92,36 @@ Here's *Happy Birthday* in F major represented in tbon.
     * Pitches inside `( )` are sounded simultaneously and sustained.
     * Duration works the same as for individual notes.
     * Melody direction rules apply to pitches in the order specified as though the parentheses did not exist. This also applies to Rolls and Ornaments (see below).
+    * Example 1
+      ```
+      /* God Save the Queen */
+      /* (with jazz chords) */
+      T=90
+      (/3561)- (/3561) (/4@672)  | (/24@67) -(/6^351) (/4@672) | (/5613) (/5613) (/@6724) |
+      (/5613) -(/4@672) (/6^351) | (/7^4@62) (/6^351) (/@6247) | (/6^351) - - |
+      ```
+    * Example 2
+      ```
+      /* Oompah accompaniment in thirds */
+      T=88
+      /c(^ce)(ce)  //g-(^ce)(bd)(ce)- /c(^ce)(ce)  //g-(^ce)(bd)(ce)-  |
+      /c(^ce)(ce)  //g-(^ce)(bd)(ce)- t=0.9 //gab (c^gce) |
+      ```
+      
   * Rolls
     * Pitches inside `(: )` are attacked in sequence over the duration of 1 sub-beat and sustained afterwards in the same manner as chords.
   * Ornaments
     * Pitches inside `(~ )` are attacked in sequence over the  duration of 1 sub-beat. 
     * Each pitch save the last ends when its successor begins.
     * The last pitch may be sustained by hyphens following the ornament.
-    
+    * Example with rolls, chords and ornaments:
+      ```
+      /* Demonstrates chords,rolls and ornaments */
+      T=120
+      z - - (://1^1351) | - 2 (~3432)3 - | 3 4 (~5654)5 - |
+      6 7 (~171717)6 (572)(~1767) | 15 35 (//1^1351) - |
+      ```
+      
   * Tempo
     * Tbon supports two kinds of tempo markers, absolute and relative.
     * Either may appear anywhere except within a beat.
@@ -176,4 +199,6 @@ Here's *Happy Birthday* in F major represented in tbon.
 ## Contributing
 All suggestions and questions are welcome. I'd especially welcome help putting together a good setup.py to make it easy to put tbon on PyPi. As this is my first serious attempt at writing a parser, I'd also welcome suggestions for improving what I presently have (though it seems to be working rather well at the moment). See the issues section for more ideas.
 
+## Oh, and one more thing ...
+I'd love to be able to include clickable links to MIDI files for the examples but GitHub doesn't support linking to them in comments and README files. They tell me that hearing requests from more people would increase the chance they'll get around to adding MIDI files to the many filetypes they already support. So please send a note to support@github.com asking them to make it so. Thanks! 
           
