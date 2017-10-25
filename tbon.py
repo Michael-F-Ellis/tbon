@@ -107,7 +107,7 @@ if __name__ == '__main__':
     _parser = argparse.ArgumentParser()
     _parser.add_argument('-x', '--transpose', type=int, default=0,
                          help="Number of semitones to transpose up or down"
-                         "The default is '1234567'.")
+                         "The default is 0")
     _parser.add_argument('-b', '--firstbar', type=int, default=0,
                          help="The measure number of the first measure."
                          "(Used to align beat map output)")
