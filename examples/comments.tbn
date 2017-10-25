@@ -1,0 +1,8 @@
+ /* 
+ This is a mult-line comment  
+ that spans three lines. Will it 
+ parse correctly? 
+ */
+1 2 3 - | /* comment between bars */ 1 2 3 - |
+/* Coment at end of file */
+

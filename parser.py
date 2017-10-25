@@ -20,7 +20,7 @@ def parse(source):
     grammar = Grammar(
         """
         melody = (comment / bar)+ ws*
-        comment = ws* ~r"/\*.*?\*/"i ws*
+        comment = ws* ~r"/\*.*?\*/"s ws*
         bar = (ws* (meta / beat) ws)+ barline
         meta = key / tempo / relativetempo / velocity / de_emphasis
         key = "K=" keyname
