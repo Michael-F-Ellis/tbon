@@ -182,7 +182,7 @@ Here's *Happy Birthday* in F major represented in tbon.
     ```
   * Comments
     * Tbon supports C-style comments that may span multiple lines.
-    * Comments start with `/*` and end with `*/'
+    * Comments start with `/*` and end with `*/`
     * Placement: anywhere except inside a bar
       * `/* ok */ a b c d | /* ok, too. */ e f g a | /* and this is also ok. */`
       * `T=120 /* Error! */ a b c d | e /* Error! */ f g a |`
