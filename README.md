@@ -117,6 +117,32 @@ Here's *Happy Birthday* in F major represented in tbon.
         V=0.8 12 34 5 - | V=0.5 /12 34 5 - |
         V=0.8 54 32 1 - | V=0.5 ^54 32 1 - |
         ```
+  * De-emphasis
+    * Syntax `D=N` where N is between 0.0 and 1.0 inclusive.
+    * Default is D=0.0 (no de-emphasis, all notes equal velocity).
+    * Velocities of notes that aren't on the downbeat are scaled by (1.0 - N).
+    * Placement: At the start of any measure before the first beat of the measure.
+    * Affects all following notes until changed.
+    * See examples/emphasis.tba
+    ```
+        /* Illustrates effect of de-emphasis */
+
+        /* None */
+        K=C T=120 D=0.0
+        c d e | f g a | b c d | c - - |
+
+        /* Subtle */
+        D=0.1
+        /c d e | f g a | b c d | c - - |
+
+        /* Quite noticeable */
+        D=0.3
+        /c d e | f g a | b c d | c - - |
+
+        /* Almost certainly too much */
+        D=0.5
+        /c d e | f g a | b c d | c - - |
+    ```
   
 ## Contributing
 All suggestions and questions are welcome. I'd especially welcome help putting together a good setup.py to make it easy to put tbon on PyPi. As this is my first serious attempt at writing a parser, I'd also welcome suggestions for improving what I presently have (though it seems to be working rather well at the moment). See the issues section for more ideas.
