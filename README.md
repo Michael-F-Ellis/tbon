@@ -34,18 +34,40 @@ To dive deeper, look at `parser.py` and `test_parser.py`.
 Here's *Happy Birthday* in F major represented in tbon.
 
 ```
-    cc | d c f  | e - cc |
+         K=F
+         cc | d c f  | e - cc |
          d c ^g | f - cc |
-         ^c a f | e d ^@bb |
+         ^c a f | e d ^bb |
          a f g  | f - - |
 ```
     
 ### Explanation
-  * Beats are groups of notes separated by whitespace
+  * Beats are groups of pitches, rests and holds followed by whitespace. 
+    * The measure below has two beats.
+        ```
+        ab-c de |
+        ```
   * The meter is determined by the number of beats between barlines ('|')
       * You may freely change meters by putting more or fewer beats within a bar.
+        ```
+        /* The first measure below has 4 beats, the second has 3. */
+        a bc d ef | g - - |
+        ```
       
-  * Pitch names are represented by a b c d e f g (alternatively by 1 2 3 4 5 6 7)
+  * Pitch names are represented by a b c d e f g (alternatively by 1 2 3 4 5 6 7).
+  
+  * Rests are indicate by letter `z` or underscore `_`.
+  
+  * Hyphen `-` indicates continuation within and across beats (i.e. a tie).
+  
+  * Note durations: tbon can represent *any* rhythm that can be represented in conventional music notation.
+    * `a b c d`  | --> one beat for each note    
+    * `a -b c d` | --> 1.5 beat for the `a` , 0.5 for the `b`, 1 each `c` and `d'.
+    * `ab c d -` | --> 0.5 each for `ab`, 1 for `c`, 2 for `d`.
+    * `a - b - | - - c -` | --> 2 beats for `a`, 4 for `b`, 2 for `c`
+    * `abc c--d e f` | --> triplet `abc`, 0.75 dotted `c`, 0.25 `d`, 1 each `e` and `f`.
+    * See also (examples/rhythms.tba)
+
   * Accidentals: Sharps,flats and naturals are '#', '@' and '%' respectively.
       - Accidentals persist until the end of the measure (standard music convention)
       
@@ -56,14 +78,6 @@ Here's *Happy Birthday* in F major represented in tbon.
           * Similarly you'd write 'c /d' to put choose the d a 7th below the c.
           * The first pitch in a melody is relative to Middle C (midi #60). 
   
-  * Note durations: tbon can represent *any* rhythm that can be represented in conventional music notation.
-    * Hyphen `-` indicates continuation within and across beats (i.e. a tie).
-    * `a b c d`  | --> one beat for each note    
-    * `a -b c d` | --> 1.5 beat for the `a` , 0.5 for the `b`, 1 each `c` and `d'.
-    * `ab c d -` | --> 0.5 each for `ab`, 1 for `c`, 2 for `d`.
-    * `a - b - | - - c -` | --> 2 beats for `a`, 4 for `b`, 2 for `c`
-    * `abc c--d e f` | --> triplet `abc`, 0.75 dotted `c`, 0.25 `d`, 1 each `e` and `f`.
-    * See also (examples/rhythms.tba)
     
   * Here's the chorus of Leonard Bernstein's *America* theme for West Side Story. I've shown it with numerical pitches just to illustrate that tbon supports those. More importantly, notice how easily tbon represents Bernstein's shifts between 6/8 and 3/4 time on alternate bars 
 
@@ -143,7 +157,22 @@ Here's *Happy Birthday* in F major represented in tbon.
         D=0.5
         /c d e | f g a | b c d | c - - |
     ```
-  
+  * Comments
+    * Tbon supports C-style comments that may span multiple lines.
+    * Comments start with `/*` and end with `*/'
+    * Placement: anywhere except inside a bar
+      * `/* ok */ a b c d | /* ok, too. */ e f g a | /* and this is also ok. */`
+      * `T=120 /* Error! */ a b c d | e /* Error! */ f g a |`
+    * See examples/omments.tbn
+    ```
+     /* 
+     This is a comment that
+     spans three lines and that, 
+     my friends, is perfectly fine. 
+     */
+     1 2 3 - | /* comment between bars */ 1 2 3 - |
+     /* Coment at end of file */
+    ```
 ## Contributing
 All suggestions and questions are welcome. I'd especially welcome help putting together a good setup.py to make it easy to put tbon on PyPi. As this is my first serious attempt at writing a parser, I'd also welcome suggestions for improving what I presently have (though it seems to be working rather well at the moment). See the issues section for more ideas.
 
