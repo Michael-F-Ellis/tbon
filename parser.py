@@ -22,12 +22,13 @@ def parse(source):
         melody = (comment / bar)+ ws*
         comment = ws* ~r"/\*.*?\*/"i ws*
         bar = (ws* (meta / beat) ws)+ barline
-        meta = key / tempo / relativetempo / velocity
+        meta = key / tempo / relativetempo / velocity / de_emphasis
         key = "K=" keyname
         keyname = ~r"[a-gA-G](@|#)?"
         tempo = "T=" floatnum
         relativetempo = "t=" floatnum
         velocity = "V=" floatnum
+        de_emphasis = "D=" floatnum
         floatnum = ~r"\d*\.?\d+"i
         beat = subbeat+
         barline = "|"
@@ -203,6 +204,8 @@ class MidiEvaluator():
             tempo=tempo,
             beat_index=0,
             subbeats=0,
+            bar_beat_index=0,
+            bar_subbeats=0,
             octave=5, ## middle C, midi number 60
             alteration=0,
             pitchname=pitch_order[0],
@@ -211,6 +214,7 @@ class MidiEvaluator():
             chord_tone_count=0,
             keyname="C",
             velocity=0.8,
+            de_emphasis=1.0,
         )
         self.subbeat_lengths = None
 
@@ -346,14 +350,25 @@ class MidiEvaluator():
         assert 0.0 <= newvelocity <= 1.0
         state['velocity'] = newvelocity
 
+    def de_emphasis(self, node, children):
+        """ Change the current de_emphasis """
+        state = self.processing_state
+        newde_emphasis = float(node.children[1].text)
+        assert 0.0 <= newde_emphasis <= 1.0
+        state['de_emphasis'] = 1.0 - newde_emphasis
+
     def bar(self, node, children):
         """ Clear any accidentals """
         self.clear_bar_accidentals()
+        state = self.processing_state
+        state['bar_beat_index'] = 0
+        state['bar_subbeats'] = 0
 
     def beat(self, node, children):
         """ Just update the beat index """
         state = self.processing_state
         state['beat_index'] += 1
+        state['bar_beat_index'] += 1
 
     def chordstart(self, node, children):
         """
@@ -368,6 +383,7 @@ class MidiEvaluator():
 
         state['notes'] = []
         state['subbeats'] += 1
+        state['bar_subbeats'] += 1
 
         state['in_chord'] = CHORD
         state['chord_tone_count'] = 0
@@ -384,6 +400,7 @@ class MidiEvaluator():
 
         state['notes'] = []
         state['subbeats'] += 1
+        state['bar_subbeats'] += 1
 
         state['in_chord'] = ROLL
         state['chord_tone_count'] = 0
@@ -405,6 +422,7 @@ class MidiEvaluator():
 
         state['notes'] = []
         state['subbeats'] += 1
+        state['bar_subbeats'] += 1
 
         state['in_chord'] = kind
         state['chord_tone_count'] = 0
@@ -522,6 +540,7 @@ class MidiEvaluator():
         if not state['in_chord']:
             state['notes'] = []
             state['subbeats'] += 1
+            state['bar_subbeats'] += 1
         state['notes'].append([None, duration,
                                state['in_chord'],
                                state['velocity'],
@@ -563,11 +582,20 @@ class MidiEvaluator():
                     self.output.append(note)
         index = state['beat_index']
         duration = self.subbeat_lengths[index]
+
+        ## De-emphasize offbeats according to current de_emphasis value
+        if self.is_downbeat(state):
+            velocity = state['velocity'] ## downbeat gets full velocity
+        else:
+            velocity = state['velocity'] * state['de_emphasis']
+
         if not state['in_chord']:
             state['notes'] = []
             state['subbeats'] += 1
+            state['bar_subbeats'] += 1
+
         state['notes'].append([pitchnumber, duration,
-                               state['in_chord'], state['velocity']])
+                               state['in_chord'], velocity])
         state['alteration'] = 0
         state['pitchname'] = pitchname
 
@@ -583,6 +611,7 @@ class MidiEvaluator():
         for note in state['notes']:
             note[1] += duration
         state['subbeats'] += 1
+        state['bar_subbeats'] += 1
 
     def pitchname_interval_ascending(self, pname0, pname1):
         """
@@ -657,3 +686,19 @@ class MidiEvaluator():
         Called at end of bar empty the dictionary.
         """
         self.processing_state['bar_accidentals'] = {}
+
+    def is_downbeat(self, state):
+        """ Return True or False """
+        if state['bar_beat_index'] != 0:
+            result = False
+        elif state['in_chord'] in (CHORD, ENDCHORD):
+            ## All notes of chords on downbeat are emphasized
+            result = True
+        elif (state['in_chord'] in (ROLL, ENDROLL, ORNAMENT, ENDORNAMENT)
+              and state['chord_tone_count'] == 0):
+            ## but only the first note of rolls and ornaments on downbeat
+            result = True
+        else:
+            ## ordinary subbeats of beat 0 are not emphasized.
+            result = (state['bar_subbeats'] == 0)
+        return result

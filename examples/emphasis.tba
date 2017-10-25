@@ -1,0 +1,17 @@
+/* Illustrates effect of de-emphasis */
+
+/* None */
+K=C T=120 D=0.0
+c d e | f g a | b c d | c - - |
+
+/* Subtle */
+D=0.1
+/c d e | f g a | b c d | c - - |
+
+/* Quite noticeable */
+D=0.3
+/c d e | f g a | b c d | c - - |
+
+/* Almost certainly too much */
+D=0.5
+/c d e | f g a | b c d | c - - |

@@ -224,6 +224,29 @@ def test_velocity():
              octave=5,
              ignore_velocity=False)
 
+def test_de_emphasis():
+    evaluate('D=0.125 c d |',
+             [(60, 0.0, 1.0, 0.8), (62.0, 1.0, 2.0, 0.7)],
+             octave=5,
+             ignore_velocity=False)
+    evaluate('D=0.125 c d | e f |',
+             [(60, 0.0, 1.0, 0.8), (62.0, 1.0, 2.0, 0.7),
+              (64, 2.0, 3.0, 0.8), (65.0, 3.0, 4.0, 0.7)],
+             octave=5,
+             ignore_velocity=False)
+    evaluate('D=0.125 (ce) d |',
+             [(60, 0.0, 1.0, 0.8), (64, 0.0, 1.0, 0.8), (62.0, 1.0, 2.0, 0.7)],
+             octave=5,
+             ignore_velocity=False)
+    evaluate('D=0.125 (:ce) d |',
+             [(60, 0.0, 1.0, 0.8), (64, 0.5, 1.0, 0.7), (62.0, 1.0, 2.0, 0.7)],
+             octave=5,
+             ignore_velocity=False)
+    evaluate('D=0.125 (~ce) d |',
+             [(60, 0.0, 0.5, 0.8), (64, 0.5, 1.0, 0.7), (62.0, 1.0, 2.0, 0.7)],
+             octave=5,
+             ignore_velocity=False)
+
 def evaluate(source, expected, octave=0,
              numeric=False, ignore_velocity=True):
     if numeric:
