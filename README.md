@@ -196,6 +196,55 @@ Here's *Happy Birthday* in F major represented in tbon.
      1 2 3 - | /* comment between bars */ 1 2 3 - |
      /* Coment at end of file */
     ```
+## Command line
+The top level executable is `tbon.py`. As I mentioned earlier it's useful to make a symbolic link to it somewhere in your path. For example, I did `ln -s ~/tbon.py ~/bin/tbon` so I can type `tbon` from any directory to process input files. Here's the help available by typing `tbon -h`.
+```
+Michaels-Mac-mini:tbon mellis$ tbon -h
+usage: tbon [-h] [-x TRANSPOSE] [-b FIRSTBAR] filename [filename ...]
+
+positional arguments:
+  filename              one or more files of tbon notation
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -x TRANSPOSE, --transpose TRANSPOSE
+                        Number of semitones to transpose up or down. The default
+                        is 0.
+  -b FIRSTBAR, --firstbar FIRSTBAR
+                        The measure number of the first measure. (Used to align
+                        beat map output)
+ ```
+   * Running, say, `tbon myfile.tba` will produce myfile.mid. 
+   * Running `tbon -x 3 myfile.tba` will produce a myfile.mid transposed up 3 semitones.
+### File extensions
+  * Tbon uses the file extension to determine whether to expect numbers or letters as pitch names.
+  * `.tba` indicates letters.
+  * `.tbn` indicates numbers.
+  * Any other extension is an error.
+### Beat maps
+  * Since tbon lets you change meters implicitly by the number of beats in each bar, some means of checking that you didn't add or omit unwanted beats is needed.
+  * When tbon runs, it prints the entire input file followed by a beat map, like this:
+  ```
+   $ tbon examples/minorscale.tbn
+   Processing examples/minorscale.tbn
+   /* Melodic minor scale */
+   /* Written first in C major, then in c minor */
+   K=C 12 @34 56 71 | 1@7 @65 4@3 21 |
+   K=c 12 34 5%6 %71 | 17 65 43 21 |
+
+   Beat Map: Number of beats in each bar
+   0:    4    4    4    4
+   Created examples/minorscale.mid
+  ```
+  * If you are compiling a segment from a larger work, you can tell tbon the number of the first measure with the `-b` option, e.g. `tbon -b 13 examples/minorscale.tbn` and get a beat map aligned to the right measure numbers.
+  ```
+  Beat Map: Number of beats in each bar
+  10:                   4    4    4    4
+  ```
+   
+
+ 
+
 ## Contributing
 All suggestions and questions are welcome. I'd especially welcome help putting together a good setup.py to make it easy to put tbon on PyPi. As this is my first serious attempt at writing a parser, I'd also welcome suggestions for improving what I presently have (though it seems to be working rather well at the moment). See the issues section for more ideas.
 
