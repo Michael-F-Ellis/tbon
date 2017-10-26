@@ -7,7 +7,7 @@ Copyright 2017 Ellis & Grant, Inc.
 """
 import os
 import argparse
-from midiutil import MIDIFile
+from midiutil import MIDIFile, SHARPS, FLATS, MAJOR, MINOR
 from parser import MidiEvaluator
 
 def make_midi(source, outfile, transpose=0,
@@ -48,12 +48,13 @@ def make_midi(source, outfile, transpose=0,
             MyMIDI.addTempo(track, m[1], m[2])
         elif m[0] == 'K':
             time = m[1]
-            sf, minor = m[2]
+            sf, mi = m[2]
+            mode = MINOR if mi == 1 else MAJOR
             accidentals = abs(sf)
-            acc_type = int(sf >= 0)
+            acc_type = SHARPS if sf > 0 else FLATS
             #print("Inserting key signature at time {}".format(time))
-            #print(accidentals, acc_type, minor)
-            MyMIDI.addKeySignature(track, time, accidentals, acc_type, minor)
+            #print(accidentals, acc_type, mode)
+            MyMIDI.addKeySignature(track, time, accidentals, acc_type, mode)
 
     for pitch, start, stop, velocity in notes:
         if pitch is not None:
