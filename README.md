@@ -69,7 +69,12 @@ Here's *Happy Birthday* in F major represented in tbon.
     * See also (examples/rhythms.tba)
 
   * Accidentals: Sharps,flats and naturals are '#', '@' and '%' respectively.
+      - Double sharp and double flat are `##` and `@@` respectively.
+      - Accidentals come __before__ the pitch, i.e. `#f` not `f#`.
       - Accidentals persist until the end of the measure (standard music convention)
+      - Unicode symbols are supported but most keyboard layouts don't include them in any convenient way.
+        - Example: `c♭c 𝄫c♭c ♮c♯c 𝄪c♯c | c - - - |`
+      
       
   * Melody direction: Pitches move up or down using the Lilypond relative pitch entry convention.
       * By default, the pitch of each note is placed above or below its predecessor based on which interval is smaller.
