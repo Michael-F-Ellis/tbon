@@ -13,7 +13,8 @@ from parser import MidiEvaluator
 def make_midi(source, outfile, transpose=0,
               track=0, channel=0,
               octave=5, numeric=True,
-              firstbar=0):
+              firstbar=0,
+              quiet=False):
     """
     Parse and evaluate the source string. Write the output
     to the specified outfile name.
@@ -66,7 +67,8 @@ def make_midi(source, outfile, transpose=0,
     with open(outfile, "wb") as output_file:
         MyMIDI.writeFile(output_file)
 
-    print_beat_map(beat_map, first_bar_number=firstbar)
+    if not quiet:
+        print_beat_map(beat_map, first_bar_number=firstbar)
 
 def print_beat_map(beat_map, first_bar_number=0):
     """
@@ -106,12 +108,15 @@ def print_beat_map(beat_map, first_bar_number=0):
 
 if __name__ == '__main__':
     _parser = argparse.ArgumentParser()
-    _parser.add_argument('-x', '--transpose', type=int, default=0,
-                         help="Number of semitones to transpose up or down"
-                         "The default is 0")
     _parser.add_argument('-b', '--firstbar', type=int, default=0,
                          help="The measure number of the first measure."
-                         "(Used to align beat map output)")
+                         " (Used to align beat map output)")
+    _parser.add_argument('-q', '--quiet', action='store_true',
+                         help="Don't print the input file and "
+                         "bar map to stdout.")
+    _parser.add_argument('-x', '--transpose', type=int, default=0,
+                         help="Number of semitones to transpose up or down."
+                         " The default is 0")
     _parser.add_argument("filename", nargs='+',
                          help="one or more files of tbon notation")
     _args = _parser.parse_args()
@@ -125,9 +130,11 @@ if __name__ == '__main__':
         print("Processing {}".format(f))
         with open(f) as infile:
             _source = infile.read()
+        if not _args.quiet:
             print(_source)
         make_midi(_source, _outfile,
                   transpose=_args.transpose,
                   numeric=_numeric,
-                  firstbar=_args.firstbar)
+                  firstbar=_args.firstbar,
+                  quiet=_args.quiet)
         print("Created {}".format(_outfile))

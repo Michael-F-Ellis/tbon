@@ -153,6 +153,13 @@ def test_bar_accidentals():
     evaluate('c @d ##d | @@d - - |',
              [(0, 0.0, 1.0), (1, 1.0, 2.0), (4, 2.0, 3.0), (0, 3.0, 6.0)])
 
+def test_unicode_accidentals():
+    evaluate("c♭c 𝄫c♭c ♮c♯c 𝄪c♯c | c - - - |",
+             [(60, 0.0, 0.50), (59, 0.50, 1.0), (58, 1.0, 1.50),
+              (59, 1.50, 2.0), (60, 2.0, 2.50), (61, 2.50, 3.0),
+              (62, 3.0, 3.50), (61, 3.50, 4.0), (60, 4.0, 8.0)],
+             octave=5)
+
 def test_pitchname_interval_ascending():
     m = MidiEvaluator()
     assert m.pitchname_interval_ascending('c', 'c') == 1 # unison

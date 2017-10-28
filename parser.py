@@ -46,11 +46,11 @@ def parse(source):
         hold = "-"
         octave = octave_up / octave_down
         alteration = doublesharp / sharp / doubleflat / flat / natural
-        doublesharp = "##"
-        sharp = "#"
-        doubleflat = "@@"
-        flat = "@"
-        natural = "%"
+        doublesharp = "𝄪" / "##"
+        sharp = "♯" / "#"
+        doubleflat = "𝄫" / "@@"
+        flat = "♭" / "@"
+        natural = "♮" / "%"
         octave_up = "^"
         octave_down = "/"
         pitchname = ~"[a-g1-7]"i
