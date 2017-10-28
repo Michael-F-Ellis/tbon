@@ -42,25 +42,25 @@ Here's *Happy Birthday* in F major represented in tbon.
 ```
     
 ### Explanation
-  * Beats are groups of pitches, rests and holds followed by whitespace. 
+  * __Beats__ are groups of pitches, rests and holds followed by whitespace. 
     * The measure below has two beats.
         ```
         ab-c de |
         ```
-  * The meter is determined by the number of beats between barlines ('|')
+  * The __meter__ is determined by the number of beats between barlines ('|')
       * You may freely change meters by putting more or fewer beats within a bar.
         ```
         /* The first measure below has 4 beats, the second has 3. */
         a bc d ef | g - - |
         ```
       
-  * Pitch names are represented by a b c d e f g (alternatively by 1 2 3 4 5 6 7).
+  * __Pitch names__ are represented by a b c d e f g (alternatively by 1 2 3 4 5 6 7).
   
-  * Rests are indicate by letter `z` or underscore `_`.
+  * __Rests__ are indicated by letter `z` or underscore `_`.
   
-  * Hyphen `-` indicates continuation within and across beats (i.e. a tie).
+  * __Hyphen__ `-` indicates continuation within and across beats (i.e. a tie).
   
-  * Note durations: tbon can represent *any* rhythm that can be represented in conventional music notation.
+  * __Note durations__: tbon can represent *any* rhythm that can be represented in conventional music notation.
     * `a b c d`  | --> one beat for each note    
     * `a -b c d` | --> 1.5 beat for the `a` , 0.5 for the `b`, 1 each `c` and `d'.
     * `ab c d -` | --> 0.5 each for `ab`, 1 for `c`, 2 for `d`.
@@ -68,7 +68,7 @@ Here's *Happy Birthday* in F major represented in tbon.
     * `abc c--d e f` | --> triplet `abc`, 0.75 dotted `c`, 0.25 `d`, 1 each `e` and `f`.
     * See also (examples/rhythms.tba)
 
-  * Accidentals: Sharps,flats and naturals are '#', '@' and '%' respectively.
+  * __Accidentals__ : Sharps,flats and naturals are '#', '@' and '%' respectively.
       - Double sharp and double flat are `##` and `@@` respectively.
       - Accidentals come __before__ the pitch, i.e. `#f` not `f#`.
       - Accidentals persist until the end of the measure (standard music convention)
@@ -76,7 +76,7 @@ Here's *Happy Birthday* in F major represented in tbon.
         - Example: `c♭c 𝄫c♭c ♮c♯c 𝄪c♯c | c - - - |`
       
       
-  * Melody direction: Pitches move up or down using the Lilypond relative pitch entry convention.
+  * __Melody direction__: Pitches move up or down using the Lilypond relative pitch entry convention.
       * By default, the pitch of each note is placed above or below its predecessor based on which interval is smaller.
           * Thus, `c g` will put the g below the c since the 4th below is smaller than the 5th above.
           * To select the more distant upper pitch, you'd write `c ^g`
@@ -93,7 +93,7 @@ Here's *Happy Birthday* in F major represented in tbon.
     @777 @333 | 2-@7 -4- |
     @333 @666 | 5-^3 -/1- |
 ```
-  * Chords
+  * __Chords__
     * Pitches inside `( )` are sounded simultaneously and sustained.
     * Duration works the same as for individual notes.
     * Melody direction rules apply to pitches in the order specified as though the parentheses did not exist. This also applies to Rolls and Ornaments (see below).
@@ -113,9 +113,9 @@ Here's *Happy Birthday* in F major represented in tbon.
       /c(^ce)(ce)  //g-(^ce)(bd)(ce)- t=0.9 //gab (c^gce) |
       ```
       
-  * Rolls
+  * __Rolls__
     * Pitches inside `(: )` are attacked in sequence over the duration of 1 sub-beat and sustained afterwards in the same manner as chords.
-  * Ornaments
+  * __Ornaments__
     * Pitches inside `(~ )` are attacked in sequence over the  duration of 1 sub-beat. 
     * Each pitch save the last ends when its successor begins.
     * The last pitch may be sustained by hyphens following the ornament.
@@ -127,7 +127,7 @@ Here's *Happy Birthday* in F major represented in tbon.
       6 7 (~171717)6 (572)(~1767) | 15 35 (//1^1351) - |
       ```
       
-  * Tempo
+  * __Tempo__
     * Tbon supports two kinds of tempo markers, absolute and relative.
     * Either may appear anywhere except within a beat.
     * Absolute tempo is specified like this in beats per minute:  `T=100`
@@ -137,7 +137,7 @@ Here's *Happy Birthday* in F major represented in tbon.
     * `T=100 a b t=0.9 c d | t=1.0 e f g a |` means "Play the first two notes at 100 bpm, the next two at 90 bpm and the remainder at 100 bpm.
     * Relative tempi are multiplied by the current absolute tempo and the result is rounded to the nearest integer.
   
-  * Key Signatures
+  * __Key Signatures__
     * All common major and minor key signatures are recognized. Use lower case for minor, upper for major.
     * Example: `K=b` for B minor, `K=E@` for E-flat major.
     * Majors: `C G D A  E  B  C@ F# G@ C# D@ A@ E@ B@ F`
@@ -148,7 +148,7 @@ Here's *Happy Birthday* in F major represented in tbon.
       * In minor keys the 3rd, 6th, and 7th degrees are flatted.
       * Example: `K=f 12 34 56 71 |` produces the natural minor scale starting on F.
   
-  * Velocity (Loudness)
+  * __Velocity (Loudness)__
     * Specify with `V=` anywhere between (but not within) beats.
     * Default is V=0.8 which corresponds to midi velocity 101 for all notes.
     * Allowed values are between 0.0 (silence) and 1.0 (maximum, midi 127).
@@ -159,7 +159,7 @@ Here's *Happy Birthday* in F major represented in tbon.
         V=0.8 12 34 5 - | V=0.5 /12 34 5 - |
         V=0.8 54 32 1 - | V=0.5 ^54 32 1 - |
         ```
-  * De-emphasis
+  * __De-emphasis__
     * Syntax `D=N` where N is between 0.0 and 1.0 inclusive.
     * Default is D=0.0 (no de-emphasis, all notes equal velocity).
     * Velocities of notes that aren't on the downbeat are scaled by (1.0 - N).
@@ -185,7 +185,7 @@ Here's *Happy Birthday* in F major represented in tbon.
         D=0.5
         /c d e | f g a | b c d | c - - |
     ```
-  * Comments
+  * __Comments__
     * Tbon supports C-style comments that may span multiple lines.
     * Comments start with `/*` and end with `*/`
     * Placement: anywhere except inside a bar
