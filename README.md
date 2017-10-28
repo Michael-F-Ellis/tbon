@@ -72,14 +72,14 @@ Here's *Happy Birthday* in F major represented in tbon.
       - Accidentals persist until the end of the measure (standard music convention)
       
   * Melody direction: Pitches move up or down using the Lilypond relative pitch entry convention.
-      * By default, the each note is above or below its predecessor based on which interval is smaller.
+      * By default, the pitch of each note is placed above or below its predecessor based on which interval is smaller.
           * Thus, `c g` will put the g below the c since the 4th below is smaller than the 5th above.
           * To select the more distant upper pitch, you'd write `c ^g`
           * Similarly you'd write 'c /d' to put choose the d a 7th below the c.
           * The first pitch in a melody is relative to Middle C (midi #60). 
   
     
-  * Here's the chorus of Leonard Bernstein's *America* theme for West Side Story. I've shown it with numerical pitches just to illustrate that tbon supports those. More importantly, notice how easily tbon represents Bernstein's shifts between 6/8 and 3/4 time on alternate bars 
+  * Here's the chorus of Leonard Bernstein's *America* theme from West Side Story. I've shown it with numerical pitches just to illustrate that tbon supports those. More importantly, notice how easily tbon represents Bernstein's shifts between 6/8 and 3/4 time on alternate bars 
 
 
 ```
@@ -182,7 +182,7 @@ Here's *Happy Birthday* in F major represented in tbon.
     ```
   * Comments
     * Tbon supports C-style comments that may span multiple lines.
-    * Comments start with `/*` and end with `*/'
+    * Comments start with `/*` and end with `*/`
     * Placement: anywhere except inside a bar
       * `/* ok */ a b c d | /* ok, too. */ e f g a | /* and this is also ok. */`
       * `T=120 /* Error! */ a b c d | e /* Error! */ f g a |`
