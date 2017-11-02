@@ -201,7 +201,7 @@ Here's *Happy Birthday* in F major represented in tbon.
      1 2 3 - | /* comment between bars */ 1 2 3 - |
      /* Coment at end of file */
     ```
-  * Beat Note
+  * __Beat Note__
     * Syntax: `B=N` where N is one of `2 4. 4 8`
       * 2 means half-note beat
       * 4. means dotted quarter note beat (need for compound meters like 6/8)
