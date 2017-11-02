@@ -203,10 +203,10 @@ Here's *Happy Birthday* in F major represented in tbon.
     ```
   * __Beat Note__
     * Syntax: `B=N` where N is one of `2 4. 4 8`
-      * 2 means half-note beat
-      * 4. means dotted quarter note beat (need for compound meters like 6/8)
-      * 4 means quarter note beat
-      * 8 means eighth-note beat
+      * `2` means half-note beat
+      * `4.` means dotted quarter note beat (need for compound meters like 6/8)
+      * `4` means quarter note beat
+      * `8` means eighth-note beat
     * Not required to produce midi files with correct note durations.
     * Useful for generating correct time signatures in the midi output file.
       * Time signatures are produced by counting the number of beats in each bar in conjunction with the most recent beat note.
