@@ -19,10 +19,15 @@ def parse(source):
     """Parse tbon Source"""
     grammar = Grammar(
         """
-        melody = (comment / bar)+ ws*
+        score = comment* partspec? music*
+        partspec = ws "[" (partname ws)+ "]" ws
+        partname = ~r"[a-zA-Z0-9_-]+"
+        music = (comment / bar)+ ws*
         comment = ws* ~r"/\*.*?\*/"s ws*
         bar = (ws* (meta / beat) ws)+ barline
-        meta = key / tempo / relativetempo / velocity / de_emphasis
+        meta = partspec /beatspec / key / tempo /
+               relativetempo / velocity / de_emphasis
+        beatspec = "B=" ("2." / "2" / "4." / "4" / "8." / "8")
         key = "K=" keyname
         keyname = ~r"[a-gA-G](@|#)?"
         tempo = "T=" floatnum
@@ -57,7 +62,7 @@ def parse(source):
         ws = ~r"\s*"i
         """
         )
-    return grammar['melody'].parse(source)
+    return grammar.parse(source)
 #pylint: enable=anomalous-backslash-in-string
 
 ## Sub-beat tyoe constants
@@ -69,6 +74,24 @@ ENDROLL = 4
 ORNAMENT = 5
 ENDORNAMENT = 6
 
+## Dict used to compute new time signatures.
+## Maps supported beatspecs to tuples of (mulitplier, denominator)
+## Multiplier is applied to the beat count to compute the numerator,
+## Thus, B=4. in a bar with 2 beats --> 6/8 time
+TIMESIG_LUT = {
+    "2.":(3, 4),
+    "2":(1, 2),
+    "4.":(3, 8),
+    "4":(1, 4),
+    "8":(1, 8),
+}
+
+def time_signature(beatspec, beatcount, index):
+    """
+    Create a new time signature at index.
+    """
+    multiplier, numerator = TIMESIG_LUT[beatspec]
+    return ('M', index, multiplier*beatcount, numerator)
 
 class MidiPreEvaluator():
     """
@@ -88,6 +111,8 @@ class MidiPreEvaluator():
             in_chord=False,
             chord_tone_count=0,
             subbeats=0,
+            beatspec="4",
+            timesig=('M', 0.0, 0, 0), ## intentionally invalid
         )
     #pylint: enable=dangerous-default-value
 
@@ -135,6 +160,13 @@ class MidiPreEvaluator():
         state['tempo'] = int(round(xtempo * state['basetempo']))
         self.insert_tempo_meta(state)
 
+    def beatspec(self, node, children):
+        """
+        Store the new beat division.
+        """
+        state = self.processing_state
+        state['beatspec'] = node.children[1].text
+
     def subbeat(self, node, children):
         """
         Add 1 to subbeat count of current beat.
@@ -167,6 +199,14 @@ class MidiPreEvaluator():
         """ Finish the bar. Add to beat map """
         state = self.processing_state
         self.beat_map.append(state['bar_beat_count'])
+        bar_index = state['beat_index'] - state['bar_beat_count']
+        timesig = time_signature(state['beatspec'],
+                                 state['bar_beat_count'],
+                                 bar_index)
+        if state['timesig'] is None or state['timesig'][-2:] != timesig[-2:]:
+            self.meta_output.append(timesig)
+            state['timesig'] = timesig
+
         state['bar_beat_count'] = 0
 
     def insert_tempo_meta(self, state, index=None):
@@ -185,7 +225,7 @@ class MidiEvaluator():
       * midi pitch number
       * start time in seconds
       * end time in seconds
-    Times are offsets from beginning of the melody. Converting the list to
+    Times are offsets from beginning of the music. Converting the list to
     actual Midi NoteOn and NoteOff events and playing playing them is left up
     to other software.
     """
@@ -270,8 +310,8 @@ class MidiEvaluator():
                 new_output.append(note)
         return new_output
 
-    def melody(self, node, children):
-        """ melody = bar+ ws*
+    def music(self, node, children):
+        """
         Add the last note or chord to the list,
         Then convert list items to (pitch, start, stop) tuples.
         """

@@ -1,0 +1,17 @@
+/* Changing meter and tempo. Constant eighth-note duration. */
+
+/* 4/4  */
+T=120
+B=4 c d e f |
+
+/* 6/8 (tempo reduced to 2/3) */
+B=4. t=0.6667 gag gag |
+
+/* 2/4 (tempo restored) */
+B=4 t=1.0 c c |
+
+/* 6/8  (tempo reduced to 2/3 */
+B=4. t=0.6667 gag gag |
+
+/* 2/4 (tempo restored) */
+B=4 t=1.0 c c | 

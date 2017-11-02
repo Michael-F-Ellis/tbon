@@ -2,7 +2,7 @@
 To be run with pytest
 """
 import keysigs
-from parser import MidiEvaluator, MidiPreEvaluator
+from parser import MidiEvaluator, MidiPreEvaluator, time_signature
 from pytest import approx
 #pylint: disable=missing-docstring, invalid-name, singleton-comparison
 
@@ -27,14 +27,14 @@ def test_tempo_change():
     mp = MidiPreEvaluator()
     mp.eval('#d - T=60 ef z |')
     assert mp.output == [1.0, 1.0, 0.5, 1.0]
-    assert mp.meta_output == [('T', 0, 120), ('T', 2, 60)]
+    assert mp.meta_output == [('T', 0, 120), ('T', 2, 60), ('M', 0, 4, 4)]
     evaluate('T=120 #d - | T=60 - - |', [(3, 0.0, 4.0)])
 
 def test_relative_tempo_change():
     mp = MidiPreEvaluator()
     mp.eval('#d - t=0.5 ef z |')
     assert mp.output == [1.0, 1.0, 0.5, 1.0]
-    assert mp.meta_output == [('T', 0, 120), ('T', 2, 60)]
+    assert mp.meta_output == [('T', 0, 120), ('T', 2, 60), ('M', 0, 4, 4)]
     evaluate('T=120 #d - | t=0.5  - - |', [(3, 0.0, 4.0)])
     evaluate('#d - | t=0.5  - - |', [(3, 0.0, 4.0)])
 
@@ -42,7 +42,8 @@ def test_keysig_insert():
     mp = MidiPreEvaluator()
     mp.eval('K=D #d - t=0.5 ef z |')
     assert mp.output == [1.0, 1.0, 0.5, 1.0]
-    assert mp.meta_output == [('K', 0, (2, 0)), ('T', 0, 120), ('T', 2, 60)]
+    assert mp.meta_output == [('K', 0, (2, 0)), ('T', 0, 120),
+                              ('T', 2, 60), ('M', 0, 4, 4)]
 
 def test_beat_map():
     mp = MidiPreEvaluator()
@@ -121,6 +122,14 @@ def test_comment():
     evaluate('/* This is a comment! */', [])
     evaluate('/* This is a comment! */ c | ', [(0, 0.0, 1.0)])
     evaluate('/* This is a comment! */ c | /* and another */', [(0, 0.0, 1.0)])
+
+def test_partspec():
+    evaluate('[B T A S]', [])
+    evaluate('/* Instruments */[Bassoon Oboe]', [])
+    ## Revise this to include track numbers in tuples
+    evaluate('[B T A S] (/cegc) |',
+             [(48, 0, 1), (52, 0, 1), (55, 0, 1), (60, 0, 1)],
+             octave=5)
 
 def test_numbers_as_pitches():
     m = MidiEvaluator(pitch_order=tuple('1234567'), ignore_velocity=True)
@@ -253,6 +262,14 @@ def test_de_emphasis():
              [(60, 0.0, 0.5, 0.8), (64, 0.5, 1.0, 0.7), (62.0, 1.0, 2.0, 0.7)],
              octave=5,
              ignore_velocity=False)
+
+def test_beatspec():
+    evaluate('B=4 #d - - - |', [(3, 0.0, 4.0)])
+    evaluate('B=4. #d - - - |', [(3, 0.0, 4.0)])
+
+def test_time_signature():
+    sig = time_signature('4.', 3, 0.0)
+    assert sig == ('M', 0.0, 9, 8)
 
 def evaluate(source, expected, octave=0,
              numeric=False, ignore_velocity=True):

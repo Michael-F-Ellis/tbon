@@ -56,6 +56,29 @@ def make_midi(source, outfile, transpose=0,
             #print("Inserting key signature at time {}".format(time))
             #print(accidentals, acc_type, mode)
             MyMIDI.addKeySignature(track, time, accidentals, acc_type, mode)
+        elif m[0] == 'M':
+            ## Time signature
+            time = m[1]
+            numerator = m[2]
+            denominator = m[3]
+            ## midi denominator specified a power of 2
+            midi_denom = {2:1, 4:2, 8:3}[denominator]
+            ## We want to make the midi metronome match beat duration.
+            ## This requires recognizing compound meters
+            ## See http://midiutil.readthedocs.io/en/1.1.3/class.html
+            ## for discussion of arguments to addTimeSignature()
+            ## including clocks_per_tick.
+            if denominator == 8 and (numerator % 3 == 0):
+                metro_clocks = 36
+            elif denominator == 4:
+                metro_clocks = 24
+            elif denominator == 2:
+                metro_clocks = 48
+
+            MyMIDI.addTimeSignature(track, time,
+                                    numerator,
+                                    denominator=midi_denom,
+                                    clocks_per_tick=metro_clocks)
 
     for pitch, start, stop, velocity in notes:
         if pitch is not None:
