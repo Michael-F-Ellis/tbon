@@ -201,6 +201,38 @@ Here's *Happy Birthday* in F major represented in tbon.
      1 2 3 - | /* comment between bars */ 1 2 3 - |
      /* Coment at end of file */
     ```
+  * Beat Note
+    * Syntax: `B=N` where N is one of `2 4. 4 8`
+      * 2 means half-note beat
+      * 4. means dotted quarter note beat (need for compound meters like 6/8)
+      * 4 means quarter note beat
+      * 8 means eighth-note beat
+    * Not required to produce midi files with correct note durations.
+    * Useful for generating correct time signatures in the midi output file.
+      * Time signatures are produced by counting the number of beats in each bar in conjunction with the most recent beat note.
+    * IMPORTANT. Changing the beat note does not affect beat durations.
+      * You must adjust the tempo according to your intent for the duration of beats.
+      * Example: See examples/meter.mid
+      ```
+      /* Changing meter and tempo. Constant eighth-note duration. */
+
+      /* 4/4  */
+      T=120
+      B=4 c d e f |
+
+      /* 6/8 (tempo reduced to 2/3) */
+      B=4. t=0.6667 gag gag |
+
+      /* 2/4 (tempo restored) */
+      B=4 t=1.0 c c |
+
+      /* 6/8  (tempo reduced to 2/3 */
+      B=4. t=0.6667 gag gag |
+
+      /* 2/4 (tempo restored) */
+      B=4 t=1.0 c c |
+      ```
+    
 ## Command line
 The top level executable is `tbon.py`. As I mentioned earlier it's useful to make a symbolic link to it somewhere in your path. For example, I did `ln -s ~/tbon.py ~/bin/tbon` so I can type `tbon` from any directory to process input files. Here's the help available by typing `tbon -h`.
 ```
