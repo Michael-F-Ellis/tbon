@@ -2,16 +2,16 @@
 
 /* 4/4  */
 T=120
-B=4 c d e f |
+B=4 cc dd ee ff |
 
-/* 6/8 (tempo reduced to 2/3) */
-B=4. t=0.6667 gag gag |
+/* 6/8  */
+B=4. gag gag |
 
-/* 2/4 (tempo restored) */
-B=4 t=1.0 c c |
+/* 2/4  */
+B=4 cc cc |
 
-/* 6/8  (tempo reduced to 2/3 */
-B=4. t=0.6667 gag gag |
+/* 6/8  */
+B=4. gag gag |
 
-/* 2/4 (tempo restored) */
-B=4 t=1.0 c c | 
+/* 2/4 */
+B=4 cc cc |

@@ -112,7 +112,7 @@ class MidiPreEvaluator():
             chord_tone_count=0,
             subbeats=0,
             beatspec="4",
-            timesig=('M', 0.0, 0, 0), ## intentionally invalid
+            timesig=('M', 0.0, 4, 4),
         )
     #pylint: enable=dangerous-default-value
 
@@ -162,10 +162,22 @@ class MidiPreEvaluator():
 
     def beatspec(self, node, children):
         """
-        Store the new beat division.
+        Store the new beat division
         """
         state = self.processing_state
-        state['beatspec'] = node.children[1].text
+        oldbeatspec = state['beatspec']
+        newbeatspec = node.children[1].text
+        if oldbeatspec != newbeatspec:
+            state['beatspec'] = newbeatspec
+            ## Need to adjust beat tempo
+            oldmult, oldnumer = TIMESIG_LUT[oldbeatspec]
+            newmult, newnumer = TIMESIG_LUT[newbeatspec]
+            tempo_ratio = (oldmult/newmult)*(newnumer/oldnumer)
+            state['basetempo'] *= tempo_ratio
+            state['tempo'] *= tempo_ratio
+            bar_index = state['beat_index'] - state['bar_beat_count']
+            self.insert_tempo_meta(state, index=bar_index)
+
 
     def subbeat(self, node, children):
         """
@@ -203,7 +215,7 @@ class MidiPreEvaluator():
         timesig = time_signature(state['beatspec'],
                                  state['bar_beat_count'],
                                  bar_index)
-        if state['timesig'] is None or state['timesig'][-2:] != timesig[-2:]:
+        if bar_index == 0 or state['timesig'][-2:] != timesig[-2:]:
             self.meta_output.append(timesig)
             state['timesig'] = timesig
 
