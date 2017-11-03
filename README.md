@@ -191,7 +191,7 @@ Here's *Happy Birthday* in F major represented in tbon.
     * Placement: anywhere except inside a bar
       * `/* ok */ a b c d | /* ok, too. */ e f g a | /* and this is also ok. */`
       * `T=120 /* Error! */ a b c d | e /* Error! */ f g a |`
-    * See examples/omments.tbn
+    * See examples/comments.tbn
     ```
      /* 
      This is a comment that
@@ -210,27 +210,26 @@ Here's *Happy Birthday* in F major represented in tbon.
     * Not required to produce midi files with correct note durations.
     * Useful for generating correct time signatures in the midi output file.
       * Time signatures are produced by counting the number of beats in each bar in conjunction with the most recent beat note.
-    * IMPORTANT. Changing the beat note does not affect beat durations.
-      * You must adjust the tempo according to your intent for the duration of beats.
+    * IMPORTANT. Changing the beat note adjusts tempo.
+      * The adjustment follows common practice in printed music, namely that changing meter numerator without an explicit tempo change retains the durations of printed notes before and after the change. In tbon, tempo refers to beat duration and, hence, the tempo must be adjusted. If you want a different result, you must explicitly change the absolute tempo.
       * Example: See examples/meter.mid
       ```
       /* Changing meter and tempo. Constant eighth-note duration. */
-
       /* 4/4  */
       T=120
       B=4 c d e f |
 
       /* 6/8 (tempo reduced to 2/3) */
-      B=4. t=0.6667 gag gag |
+      B=4. gag gag |
 
       /* 2/4 (tempo restored) */
-      B=4 t=1.0 c c |
+      B=4 c c |
 
       /* 6/8  (tempo reduced to 2/3 */
-      B=4. t=0.6667 gag gag |
+      B=4. gag gag |
 
       /* 2/4 (tempo restored) */
-      B=4 t=1.0 c c |
+      B=4  c c |
       ```
     
 ## Command line
