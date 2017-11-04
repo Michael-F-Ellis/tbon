@@ -9,6 +9,17 @@ This repo is very much *alpha* software. That being said, the parser and evaluat
 
 Tbon borrows ideas from Lilypond, ABC, and music21's TinyNotation. What makes it different is that it's never necessary to explicity specify a note duration (e.g. 1/2, 1/4) or a meter (e.g. 4/4, 6/8, etc). Beats are groups of notes separated by whitespace.
 
+Tbon aims to be the fastest way to enter pitches, rhythms, meter and dynamic levels from a computer keyboard.
+
+Tbon produces MIDI files with tempo, key, and meter changes correctly specified. So far, I've verified that the files can be imported to:
+  * MuseScore -- A very popular freeware notation editor.
+  * Reaper -- An inexpensive commercial DAW that runs on Windows and OS X
+  * Logic Pro X -- Professional DAW from Apple. (OS X only)
+  * QMidi - low-cost commercial player app.
+  
+Any DAW or notation program that correctly reads MIDI files should be able to import, play, and edit the files produced by Tbon. (Note: Garage Band does not support changes of meter in imported MIDI files. I don't recommend it.)
+
+
 ## Installation
 There's no installer at present so you'll need to clone the repo or copy the files.
 
@@ -210,9 +221,7 @@ Here's *Happy Birthday* in F major represented in tbon.
     * Not required to produce midi files with correct note durations.
     * Useful for generating correct time signatures in the midi output file.
       * Time signatures are produced by counting the number of beats in each bar in conjunction with the most recent beat note.
-    * IMPORTANT. Changing the beat note adjusts tempo.
-      * The adjustment follows common practice in printed music, namely that changing meter numerator without an explicit tempo change retains the durations of printed notes before and after the change. In tbon, tempo refers to beat duration and, hence, the tempo must be adjusted. If you want a different result, you must explicitly change the absolute tempo.
-      * Example: See examples/meter.mid
+    * Example: See examples/meter.mid
       ```
       /* Changing meter and tempo. Constant eighth-note duration. */
       /* 4/4  */
@@ -231,7 +240,10 @@ Here's *Happy Birthday* in F major represented in tbon.
       /* 2/4 (tempo restored) */
       B=4  c c |
       ```
-    
+      
+    * Changing the beat note does not change tempo.
+      * The adjustment follows common practice in printed music, namely that changing meter numerator without an explicit tempo change retains the durations of printed notes before and after the change.  If you want a different tempo, you must explicitly change it.
+      
 ## Command line
 The top level executable is `tbon.py`. As I mentioned earlier it's useful to make a symbolic link to it somewhere in your path. For example, I did `ln -s ~/tbon.py ~/bin/tbon` so I can type `tbon` from any directory to process input files. Here's the help available by typing `tbon -h`.
 ```
