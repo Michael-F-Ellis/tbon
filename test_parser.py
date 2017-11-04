@@ -265,7 +265,7 @@ def test_de_emphasis():
 
 def test_beatspec():
     evaluate('B=4 #d - - - |', [(3, 0.0, 4.0)])
-    evaluate('B=4. #d - - - |', [(3, 0.0, 4.0)])
+    evaluate('B=4. #d - - - |', [(3, 0.0, 6.0)])
 
 def test_time_signature():
     sig = time_signature('4.', 3, 0.0)

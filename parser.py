@@ -170,13 +170,13 @@ class MidiPreEvaluator():
         if oldbeatspec != newbeatspec:
             state['beatspec'] = newbeatspec
             ## Need to adjust beat tempo
-            oldmult, oldnumer = TIMESIG_LUT[oldbeatspec]
-            newmult, newnumer = TIMESIG_LUT[newbeatspec]
-            tempo_ratio = (oldmult/newmult)*(newnumer/oldnumer)
-            state['basetempo'] *= tempo_ratio
-            state['tempo'] *= tempo_ratio
-            bar_index = state['beat_index'] - state['bar_beat_count']
-            self.insert_tempo_meta(state, index=bar_index)
+            #oldmult, oldnumer = TIMESIG_LUT[oldbeatspec]
+            #newmult, newnumer = TIMESIG_LUT[newbeatspec]
+            #tempo_ratio = (oldmult/newmult)*(newnumer/oldnumer)
+            #state['basetempo'] *= tempo_ratio
+            #state['tempo'] *= tempo_ratio
+            #bar_index = state['beat_index'] - state['bar_beat_count']
+            #self.insert_tempo_meta(state, index=bar_index)
 
 
     def subbeat(self, node, children):
@@ -193,13 +193,15 @@ class MidiPreEvaluator():
         a beat.
         """
         state = self.processing_state
-        beat_length = 1
+        mult, numer = TIMESIG_LUT[state['beatspec']]
+        #beat_length = 1
+        beat_length = 4 * mult / numer
         subbeat_length = beat_length/state['subbeats']
         state['subbeats'] = 0
-        state['beat_index'] += 1
+        state['beat_index'] += beat_length
         state['bar_beat_count'] += 1
         ## if no tempo meta at end of first beat, insert the default.
-        if state['beat_index'] == 1:
+        if state['beat_index'] == beat_length:
             for m in self.meta_output:
                 if m[0] == 'T':
                     break
@@ -211,7 +213,9 @@ class MidiPreEvaluator():
         """ Finish the bar. Add to beat map """
         state = self.processing_state
         self.beat_map.append(state['bar_beat_count'])
-        bar_index = state['beat_index'] - state['bar_beat_count']
+        mult, numer = TIMESIG_LUT[state['beatspec']]
+        beat_length = 4 * mult / numer
+        bar_index = state['beat_index'] - state['bar_beat_count'] * beat_length
         timesig = time_signature(state['beatspec'],
                                  state['bar_beat_count'],
                                  bar_index)
