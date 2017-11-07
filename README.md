@@ -41,7 +41,7 @@ You can create your own input files with a text editor using the syntax describe
 
 To dive deeper, look at `parser.py` and `test_parser.py`.
 
-## Notation
+## Tutorial
 Here's *Happy Birthday* in F major represented in tbon.
 
 ```
@@ -53,7 +53,7 @@ Here's *Happy Birthday* in F major represented in tbon.
 
 *Except where otherwise noted, musical images in this document were created by importing tbon midi files directly into MuseScore 2.1 without further editing.* 
 
-### Explanation
+### The notation
   * __Beats__ are groups of pitches, rests and holds followed by whitespace. 
     * The measure below has two beats.
         ```
@@ -62,11 +62,12 @@ Here's *Happy Birthday* in F major represented in tbon.
         ![Two Beats](doc/img/twobeats.png)
   * The __meter__ is determined by the number of beats between barlines ('|')
       * You may freely change meters by putting more or fewer beats within a bar.
-        ```
-        /* The first measure below has 4 beats, the second has 3. */
-        a bc d ef | g - - |
-        ```
+         ```
+         /* The first measure below has 4 beats, the second has 3. */
+         a bc d ef | g - - |
+         ```
         ![Meter Change](doc/img/meterchange.png)
+        
   * __Pitch names__ are represented by a b c d e f g (alternatively by 1 2 3 4 5 6 7).
   
   * __Rests__ are indicated by letter `z` or underscore `_`.
@@ -74,11 +75,37 @@ Here's *Happy Birthday* in F major represented in tbon.
   * __Hyphen__ `-` indicates continuation within and across beats (i.e. a tie).
   
   * __Note durations__: tbon can represent *any* rhythm that can be represented in conventional music notation.
-    * `a b c d`  | --> one beat for each note    
-    * `a -b c d` | --> 1.5 beat for the `a` , 0.5 for the `b`, 1 each `c` and `d'.
-    * `ab c d -` | --> 0.5 each for `ab`, 1 for `c`, 2 for `d`.
-    * `a - b - | - - c -` | --> 2 beats for `a`, 4 for `b`, 2 for `c`
-    * `abc c--d e f` | --> triplet `abc`, 0.75 dotted `c`, 0.25 `d`, 1 each `e` and `f`.
+     ```
+     a b c d | e f e d |
+     ```
+     ![](doc/img/quarters.png)
+     
+     ----
+     ```
+     a -b c d |
+     ```
+     ![](doc/img/dotted_q.png)
+     
+     ----
+     ```
+     ab c d - |
+     ```
+     ![](doc/img/eighth_q_h.png)
+     
+     ----
+     ```
+     a - b - | - - c - |
+     ```
+     ![](doc/img/tie.png)
+     
+     ----
+     ```
+     abc c--d e f |
+     ```
+     ![](doc/img/mix.png)
+     
+     ----
+     
     * See also (examples/rhythms.tba)
 
   * __Accidentals__ : Sharps,flats and naturals are '#', '@' and '%' respectively.
