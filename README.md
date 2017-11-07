@@ -59,13 +59,14 @@ Here's *Happy Birthday* in F major represented in tbon.
         ```
         ab-c de |
         ```
+        ![Two Beats](doc/img/twobeats.png)
   * The __meter__ is determined by the number of beats between barlines ('|')
       * You may freely change meters by putting more or fewer beats within a bar.
         ```
         /* The first measure below has 4 beats, the second has 3. */
         a bc d ef | g - - |
         ```
-      
+        ![Meter Change](doc/img/meterchange.png)
   * __Pitch names__ are represented by a b c d e f g (alternatively by 1 2 3 4 5 6 7).
   
   * __Rests__ are indicated by letter `z` or underscore `_`.
