@@ -2,7 +2,7 @@
 To be run with pytest
 """
 import keysigs
-from parser import MidiEvaluator, MidiPreEvaluator, time_signature
+from parser import (MidiEvaluator, MidiPreEvaluator, time_signature)
 from pytest import approx
 #pylint: disable=missing-docstring, invalid-name, singleton-comparison
 
@@ -283,4 +283,32 @@ def evaluate(source, expected, octave=0,
     m.set_octave(octave)
     m.eval(source)
     for i, t in enumerate(m.output):
+        assert t == approx(expected[i])
+
+def test_metronome():
+    metroevaluate('a b - cd  |', [(76, 0, 1, 0.8), (77, 1, 2, 0.8),
+                                  (77, 2, 3, 0.8), (77, 3, 4, 0.8)],
+                  octave=5,
+                  ignore_velocity=False)
+
+    metroevaluate('B=4. a b |', [(76, 0, 1.5, 0.8), (77, 1.5, 3, 0.8)],
+                  octave=5,
+                  ignore_velocity=False)
+
+    metroevaluate('B=4. D=0.25 a b |', [(76, 0, 1.5, 0.8), (77, 1.5, 3, 0.6)],
+                  octave=5,
+                  ignore_velocity=False)
+
+def metroevaluate(source, expected, octave=0,
+                  numeric=False, ignore_velocity=True):
+    if numeric:
+        pitch_order = tuple('1234567')
+    else:
+        pitch_order = tuple('cdefgab')
+
+    m = MidiEvaluator(pitch_order=pitch_order,
+                      ignore_velocity=ignore_velocity)
+    m.set_octave(octave)
+    m.eval(source)
+    for i, t in enumerate(m.metronome_output):
         assert t == approx(expected[i])

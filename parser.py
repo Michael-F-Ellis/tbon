@@ -10,6 +10,7 @@ Copyright 2017 Ellis & Grant, Inc.
 ## pylint: disable=blacklisted-name
 ## pylint: disable=too-many-public-methods
 ## pylint: disable=too-many-instance-attributes
+## pylint: disable=too-many-statements
 #######################################################################
 import keysigs
 from parsimonious.grammar import Grammar
@@ -103,6 +104,7 @@ class MidiPreEvaluator():
         self.output = []
         self.meta_output = []
         self.beat_map = []
+        self.beat_lengths = []
         self.processing_state = dict(
             basetempo=tempo,
             tempo=tempo,
@@ -208,6 +210,7 @@ class MidiPreEvaluator():
             else:
                 self.insert_tempo_meta(state, index=0)
         self.output.append(subbeat_length)
+        self.beat_lengths.append(beat_length)
 
     def barline(self, node, children):
         """ Finish the bar. Add to beat map """
@@ -252,6 +255,7 @@ class MidiEvaluator():
         self.ignore_velocity = ignore_velocity
         self.pitch_midinumber = dict(zip(pitch_order, (0, 2, 4, 5, 7, 9, 11)))
         self.output = []
+        self.metronome_output = []
         self.meta_output = []
         self.beat_map = ()
         self.processing_state = dict(
@@ -273,6 +277,7 @@ class MidiEvaluator():
             de_emphasis=1.0,
         )
         self.subbeat_lengths = None
+        self.beat_lengths = []
 
     def set_octave(self, midi_octave_number):
         """
@@ -288,6 +293,7 @@ class MidiEvaluator():
             mp = MidiPreEvaluator(tempo=self.processing_state['tempo'])
             mp.eval(source, verbosity=0)
             self.subbeat_lengths = mp.output
+            self.beat_lengths = mp.beat_lengths
             self.meta_output = mp.meta_output
             self.beat_map = tuple(mp.beat_map)
 
@@ -332,8 +338,6 @@ class MidiEvaluator():
         Then convert list items to (pitch, start, stop) tuples.
         """
         state = self.processing_state
-        for note in state['notes']:
-            self.output.append(note)
         converted = []
         start = None
         end = None
@@ -372,6 +376,15 @@ class MidiEvaluator():
                 end += duration
             in_chord = new
 
+        ## Convert the music output
+        for note in state['notes']:
+            self.output.append(note)
+        converted = []
+        start = None
+        end = None
+        in_chord = None
+        duration = None
+        roll_remaining = None
 
         for item in self.output:
             pitch = item[0]
@@ -384,6 +397,26 @@ class MidiEvaluator():
                 converted.append((pitch, start, end, velocity))
 
         self.output = converted
+
+        ## Convert the metronome output
+        converted = []
+        start = None
+        end = None
+        in_chord = None
+        duration = None
+        roll_remaining = None
+
+        for item in self.metronome_output:
+            pitch = item[0]
+            duration = item[1]
+            transition(item[2])
+            velocity = item[3]
+            if self.ignore_velocity:
+                converted.append((pitch, start, end))
+            else:
+                converted.append((pitch, start, end, velocity))
+
+        self.metronome_output = converted
 
     def tempo(self, node, children):
         """ Install a new tempo """
@@ -423,8 +456,19 @@ class MidiEvaluator():
     def beat(self, node, children):
         """ Just update the beat index """
         state = self.processing_state
+        velocity = state['velocity']
+        in_chord = 0
+        if state['bar_beat_index'] == 0:
+            pitchnumber = 76
+        else:
+            pitchnumber = 77
+            velocity *= state['de_emphasis']
+
+        duration = self.beat_lengths[state['beat_index']]
         state['beat_index'] += 1
         state['bar_beat_index'] += 1
+        self.metronome_output.append([pitchnumber, duration,
+                                      in_chord, velocity])
 
     def chordstart(self, node, children):
         """

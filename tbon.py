@@ -5,6 +5,7 @@ Description: Command line executable.
 Author: Mike Ellis
 Copyright 2017 Ellis & Grant, Inc.
 """
+#pylint: disable=too-many-branches
 import os
 import argparse
 from midiutil import MIDIFile, SHARPS, FLATS, MAJOR, MINOR
@@ -14,7 +15,8 @@ def make_midi(source, outfile, transpose=0,
               track=0, channel=0,
               octave=5, numeric=True,
               firstbar=0,
-              quiet=False):
+              quiet=False,
+              metronome=0):
     """
     Parse and evaluate the source string. Write the output
     to the specified outfile name.
@@ -35,13 +37,24 @@ def make_midi(source, outfile, transpose=0,
     else:
         pitches = tuple('cdefgab')
 
+    ## MIDIUtil zero indexs, so channel 9 is 10,
+    ## the normal channel for percussion
+    metronome_channel = 9
+
     tbon = MidiEvaluator(pitch_order=pitches)
     tbon.set_octave(octave)
     tbon.eval(source, verbosity=0)
     notes = tbon.transpose_output(transpose)
+    metronotes = tbon.metronome_output
+    if metronome == 0:
+        numTracks = 1
+    elif metronome == 1:
+        numTracks = 1
+    else:
+        numTracks = 2
     meta = tbon.meta_output
     beat_map = tbon.beat_map
-    MyMIDI = MIDIFile(1, adjust_origin=True)  # One track
+    MyMIDI = MIDIFile(numTracks, adjust_origin=True)
     #MyMIDI.addTempo(track, 0, tempo)
 
     for m in meta:
@@ -80,12 +93,23 @@ def make_midi(source, outfile, transpose=0,
                                     denominator=midi_denom,
                                     clocks_per_tick=metro_clocks)
 
-    for pitch, start, stop, velocity in notes:
-        if pitch is not None:
-            MyMIDI.addNote(track, channel,
-                           pitch, start,
-                           stop - start,
-                           int(velocity * 127))
+    def add_notes(source, trk, chan):
+        """ Add all notes in source to trk on chan. """
+        for pitch, start, stop, velocity in source:
+            if pitch is not None:
+                MyMIDI.addNote(trk, chan,
+                               pitch, start,
+                               stop - start,
+                               int(velocity * 127))
+    if metronome == 0:
+        add_notes(notes, track, channel)
+    elif metronome == 1:
+        ## Metronome output only.
+        add_notes(metronotes, track, metronome_channel)
+    else:
+        ## Both
+        add_notes(notes, track, channel)
+        add_notes(metronotes, 1, metronome_channel)
 
     with open(outfile, "wb") as output_file:
         MyMIDI.writeFile(output_file)
@@ -149,7 +173,11 @@ if __name__ == '__main__':
             raise Exception("File xxtension must be .tba or .tbn")
         else:
             _numeric = _ext.lower() == ".tbn"
+
         _outfile = _name + ".mid"
+        _metro_outfile = _name + "_metronome_only.mid"
+        _both_outfile = _name + "_with_metronome.mid"
+
         print("Processing {}".format(f))
         with open(f) as infile:
             _source = infile.read()
@@ -159,5 +187,20 @@ if __name__ == '__main__':
                   transpose=_args.transpose,
                   numeric=_numeric,
                   firstbar=_args.firstbar,
-                  quiet=_args.quiet)
+                  quiet=_args.quiet,
+                  metronome=0)
         print("Created {}".format(_outfile))
+        make_midi(_source, _metro_outfile,
+                  transpose=_args.transpose,
+                  numeric=_numeric,
+                  firstbar=_args.firstbar,
+                  quiet=True,
+                  metronome=1)
+        print("Created {}".format(_metro_outfile))
+        make_midi(_source, _both_outfile,
+                  transpose=_args.transpose,
+                  numeric=_numeric,
+                  firstbar=_args.firstbar,
+                  quiet=True,
+                  metronome=2)
+        print("Created {}".format(_both_outfile))
