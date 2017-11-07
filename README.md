@@ -145,13 +145,17 @@ Here's *Happy Birthday* in F major represented in tbon.
       (/3561)- (/3561) (/4@672)  | (/24@67) -(/6^351) (/4@672) | (/5613) (/5613) (/@6724) |
       (/5613) -(/4@672) (/6^351) | (/7^4@62) (/6^351) (/@6247) | (/6^351) - - |
       ```
+      ![](doc/img/godsave.png)
+      *<small>Musescore spelled the A-flats in the vii°7 chords as G-sharps in the above example. I've left them as imported.</small>*
+
     * Example 2
       ```
       /* Oompah accompaniment in thirds */
-      T=88
+      T=88 B=4.
       /c(^ce)(ce)  //g-(^ce)(bd)(ce)- /c(^ce)(ce)  //g-(^ce)(bd)(ce)-  |
       /c(^ce)(ce)  //g-(^ce)(bd)(ce)- t=0.9 //gab (c^gce) |
       ```
+      ![](doc/img/oompah.png)
       
   * __Rolls__
     * Pitches inside `(: )` are attacked in sequence over the duration of 1 sub-beat and sustained afterwards in the same manner as chords.
