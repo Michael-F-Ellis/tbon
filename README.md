@@ -45,13 +45,14 @@ To dive deeper, look at `parser.py` and `test_parser.py`.
 Here's *Happy Birthday* in F major represented in tbon.
 
 ```
-         K=F
-         cc | d c f  | e - cc |
-         d c ^g | f - cc |
-         ^c a f | e d ^bb |
-         a f g  | f - - |
+    K=F
+    cc | d c f  | e - cc | d c ^g | f - cc |
+         ^c a f | e d ^bb | a f g  | f - - |
 ```
-    
+![Happy Birthday score](doc/img/happy_f.png)
+
+*Except where otherwise noted, musical images in this document were created by importing tbon midi files directly into MuseScore 2.1 without further editing.* 
+
 ### Explanation
   * __Beats__ are groups of pitches, rests and holds followed by whitespace. 
     * The measure below has two beats.
