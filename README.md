@@ -46,8 +46,8 @@ Here's *Happy Birthday* in F major represented in tbon.
 
 ```
     K=F
-    cc | d c f  | e - cc | d c ^g | f - cc |
-         ^c a f | e d ^bb | a f g  | f - - |
+    - - cc | d c f  | e - cc | d c ^g | f - cc |
+    ^c a f | e d ^bb | a f g  | f - - |
 ```
 ![Happy Birthday score](doc/img/happy_f.png)
 
