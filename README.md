@@ -42,16 +42,28 @@ You can create your own input files with a text editor using the syntax describe
 To dive deeper, look at `parser.py` and `test_parser.py`.
 
 ## Tutorial
-Here's *Happy Birthday* in F major represented in tbon.
+Let's begin with a couple of familiar tunes that illustrate the majority of tbon's notation syntax.
+  * Here's *Happy Birthday* in F major represented in tbon.
 
-```
+  ```
     K=F
     - - cc | d c f  | e - cc | d c ^g | f - cc |
     ^c a f | e d ^bb | a f g  | f - - |
-```
-![Happy Birthday score](doc/img/happy_f.png)
+  ```
+  ![Happy Birthday score](doc/img/happy_f.png)
 
-*Except where otherwise noted, musical images in this document were created by importing tbon midi files directly into MuseScore 2.1 without further editing.* 
+  *Except where otherwise noted, musical images in this document were created by importing tbon midi files directly into  MuseScore 2.1 without further editing.* 
+
+  * Here's the chorus of Leonard Bernstein's *America* theme from West Side Story. I've shown it with numerical pitches just to illustrate how tbon supports those. More importantly, notice how easily tbon represents Bernstein's shifts between 6/8 and 3/4 time on alternate bars 
+
+
+    ```
+    K=C B=4.
+    ^555 111  | 6-4 -1- | ^555 111  | 2-7 -5- |
+    @777 @333 | 2-@7 -4- | @333 @666 | 5-^3 -/1- |
+    ```
+    ![America](doc/img/bernstein_america.png)
+
 
 ### The notation
   * __Beats__ are groups of pitches, rests and holds followed by whitespace. 
@@ -70,9 +82,15 @@ Here's *Happy Birthday* in F major represented in tbon.
         
   * __Pitch names__ are represented by a b c d e f g (alternatively by 1 2 3 4 5 6 7).
   
-  * __Rests__ are indicated by letter `z` or underscore `_`.
-  
   * __Hyphen__ `-` indicates continuation within and across beats (i.e. a tie).
+
+  * __Rests__ are indicated by letter `z` or underscore `_`.
+    * Notice that rests are also extended by hyphens
+      ```
+      cz - cz | -c - z |
+      ```
+      ![Rests](doc/img/rests.png)
+  
   
   * __Note durations__: tbon can represent *any* rhythm that can be represented in conventional music notation.
      ```
@@ -124,15 +142,7 @@ Here's *Happy Birthday* in F major represented in tbon.
           * The first pitch in a melody is relative to Middle C (midi #60). 
   
     
-  * Here's the chorus of Leonard Bernstein's *America* theme from West Side Story. I've shown it with numerical pitches just to illustrate that tbon supports those. More importantly, notice how easily tbon represents Bernstein's shifts between 6/8 and 3/4 time on alternate bars 
 
-
-```
-    ^555 111  | 6-4 -1- |
-    ^555 111  | 2-7 -5- |
-    @777 @333 | 2-@7 -4- |
-    @333 @666 | 5-^3 -/1- |
-```
   * __Chords__
     * Pitches inside `( )` are sounded simultaneously and sustained.
     * Duration works the same as for individual notes.
@@ -170,6 +180,7 @@ Here's *Happy Birthday* in F major represented in tbon.
       z - - (://1^1351) | - 2 (~3432)3 - | 3 4 (~5654)5 - |
       6 7 (~171717)6 (572)(~1767) | 15 35 (//1^1351) - |
       ```
+      ![Ornaments](doc/img/ornaments.png)
       
   * __Tempo__
     * Tbon supports two kinds of tempo markers, absolute and relative.
