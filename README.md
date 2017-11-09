@@ -264,26 +264,26 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
     * Not required to produce midi files with correct note durations.
     * Useful for generating correct time signatures in the midi output file.
       * Time signatures are produced by counting the number of beats in each bar in conjunction with the most recent beat note.
-    * Example: See examples/meter.mid
+    * Example: See examples/meter.tba
       ```
-      /* Changing meter and tempo. Constant eighth-note duration. */
+      /* Changing meter and tempo. Constant quarter-note duration. */
       /* 4/4  */
       T=120
       B=4 c d e f |
 
-      /* 6/8 (tempo reduced to 2/3) */
+      /* 6/8  */
       B=4. gag gag |
 
-      /* 2/4 (tempo restored) */
+      /* 2/4  */
       B=4 c c |
 
-      /* 6/8  (tempo reduced to 2/3 */
+      /* 6/8  */
       B=4. gag gag |
 
-      /* 2/4 (tempo restored) */
-      B=4  c c |
+      /* 2/4 */
+      B=4 c c |
       ```
-      
+      ![Meter](doc/img/meter.png)
     * Changing the beat note does not change tempo.
       * The adjustment follows common practice in printed music, namely that changing meter numerator without an explicit tempo change retains the durations of printed notes before and after the change.  If you want a different tempo, you must explicitly change it.
       
