@@ -40,9 +40,14 @@ def parse(source):
         barline = "|"
         extendable = chord / roll / ornament / pitch / rest
         pitch = octave* alteration? pitchname
-        chord = chordstart pitch pitch+ rparen
+        divadd = "+"
+        divdrop = "x"
+        chord = chordstart chorditem chorditem* rparen
         chordstart = "("
         rparen = ")"
+        chorditem = chordpitch / chordhold / divdrop
+        chordpitch = divadd? octave* alteration? pitchname
+        chordhold = '-'
         roll = rollstart pitch pitch+ rparen
         rollstart = "(:"
         ornament = ornamentstart pitch pitch+ rparen
@@ -69,11 +74,8 @@ def parse(source):
 ## Sub-beat tyoe constants
 NOTE = 0
 CHORD = 1
-ENDCHORD = 2
-ROLL = 3
-ENDROLL = 4
-ORNAMENT = 5
-ENDORNAMENT = 6
+ROLL = 2
+ORNAMENT = 3
 
 ## Dict used to compute new time signatures.
 ## Maps supported beatspecs to tuples of (mulitplier, denominator)
@@ -105,6 +107,7 @@ class MidiPreEvaluator():
         self.meta_output = []
         self.beat_map = []
         self.beat_lengths = []
+        self.subbeat_starts = []
         self.processing_state = dict(
             basetempo=tempo,
             tempo=tempo,
@@ -171,15 +174,6 @@ class MidiPreEvaluator():
         newbeatspec = node.children[1].text
         if oldbeatspec != newbeatspec:
             state['beatspec'] = newbeatspec
-            ## Need to adjust beat tempo
-            #oldmult, oldnumer = TIMESIG_LUT[oldbeatspec]
-            #newmult, newnumer = TIMESIG_LUT[newbeatspec]
-            #tempo_ratio = (oldmult/newmult)*(newnumer/oldnumer)
-            #state['basetempo'] *= tempo_ratio
-            #state['tempo'] *= tempo_ratio
-            #bar_index = state['beat_index'] - state['bar_beat_count']
-            #self.insert_tempo_meta(state, index=bar_index)
-
 
     def subbeat(self, node, children):
         """
@@ -199,6 +193,12 @@ class MidiPreEvaluator():
         #beat_length = 1
         beat_length = 4 * mult / numer
         subbeat_length = beat_length/state['subbeats']
+
+        subbeats = []
+        for n in range(state['subbeats']):
+            subbeats.append(state['beat_index'] + (n * subbeat_length))
+        self.subbeat_starts.append(tuple(subbeats))
+
         state['subbeats'] = 0
         state['beat_index'] += beat_length
         state['bar_beat_count'] += 1
@@ -258,7 +258,10 @@ class MidiEvaluator():
         self.metronome_output = []
         self.meta_output = []
         self.beat_map = ()
+        self.subbeat_starts = []
+        self.beat_lengths = []
         self.processing_state = dict(
+            add_div=False,
             notes=[],
             basetempo=tempo,
             tempo=tempo,
@@ -272,6 +275,8 @@ class MidiEvaluator():
             bar_accidentals={},
             in_chord=NOTE,
             chord_tone_count=0,
+            prior_chord_tone_count=0,
+            prior_chord_next_index=0,
             keyname="C",
             velocity=0.8,
             de_emphasis=1.0,
@@ -293,6 +298,7 @@ class MidiEvaluator():
             mp = MidiPreEvaluator(tempo=self.processing_state['tempo'])
             mp.eval(source, verbosity=0)
             self.subbeat_lengths = mp.output
+            self.subbeat_starts = mp.subbeat_starts
             self.beat_lengths = mp.beat_lengths
             self.meta_output = mp.meta_output
             self.beat_map = tuple(mp.beat_map)
@@ -335,61 +341,24 @@ class MidiEvaluator():
     def music(self, node, children):
         """
         Add the last note or chord to the list,
-        Then convert list items to (pitch, start, stop) tuples.
+        Then convert output list items to tuples.
+        If we're ignoring velocity, the tuples are:
+            (pitch, start, end)
+        otherwise
+            (pitch, start, end, velocity)
         """
         state = self.processing_state
-        converted = []
-        start = None
-        end = None
-        in_chord = None
-        duration = None
-        roll_remaining = None
-        def transition(new):
-            """ Note/Chord transitions """
-            nonlocal start, end, in_chord, duration, roll_remaining
-            change = (in_chord, new)
-            #print("transition: {}".format(change))
-            if change in ((None, NOTE), (None, CHORD),
-                          (None, ROLL), (None, ORNAMENT)):
-                start = 0
-                end = duration
-                if change[1] == ROLL:
-                    roll_remaining = duration
-            elif change in ((CHORD, CHORD), (CHORD, ENDCHORD)):
-                pass
-            elif change in ((NOTE, ROLL), (ENDCHORD, ROLL),
-                            (ENDROLL, ROLL), (ENDORNAMENT, ROLL)):
-                ## Beginning of roll. First note contains full duration.
-                roll_remaining = duration
-                start = end
-                end += duration
-            elif change in ((ROLL, ROLL), (ROLL, ENDROLL)):
-                ## Advance the start time by one sub-subbeat
-                #print("start={}, roll_remaining={}, duration={}".format(
-                #    start, roll_remaining, duration))
-                start += roll_remaining - duration
-                roll_remaining = duration
-            else:
-                ## All other transitions advance sequentially with each new note
-                ## starting at the end of the prior note.
-                start = end
-                end += duration
-            in_chord = new
 
-        ## Convert the music output
+        ## Add the last note or chord to the list,
         for note in state['notes']:
             self.output.append(note)
-        converted = []
-        start = None
-        end = None
-        in_chord = None
-        duration = None
-        roll_remaining = None
 
+        ## Convert the music output
+        converted = []
         for item in self.output:
             pitch = item[0]
-            duration = item[1]
-            transition(item[2])
+            start = item[1]
+            end = item[2]
             velocity = item[3]
             if self.ignore_velocity:
                 converted.append((pitch, start, end))
@@ -400,16 +369,11 @@ class MidiEvaluator():
 
         ## Convert the metronome output
         converted = []
-        start = None
-        end = None
-        in_chord = None
-        duration = None
-        roll_remaining = None
 
         for item in self.metronome_output:
             pitch = item[0]
-            duration = item[1]
-            transition(item[2])
+            start = item[1]
+            end = item[2]
             velocity = item[3]
             if self.ignore_velocity:
                 converted.append((pitch, start, end))
@@ -454,21 +418,25 @@ class MidiEvaluator():
         state['bar_subbeats'] = 0
 
     def beat(self, node, children):
-        """ Just update the beat index """
+        """ Update the beat indices and add to metronome_output"""
         state = self.processing_state
+
+        ## Metronome
         velocity = state['velocity']
-        in_chord = 0
         if state['bar_beat_index'] == 0:
             pitchnumber = 76
         else:
             pitchnumber = 77
             velocity *= state['de_emphasis']
+        bindex = state['beat_index']
+        start = self.subbeat_starts[bindex][0]
+        end = start + self.beat_lengths[bindex]
+        self.metronome_output.append([pitchnumber, start, end, velocity])
 
-        duration = self.beat_lengths[state['beat_index']]
+        ## Update indices
+        state['subbeats'] = 0
         state['beat_index'] += 1
         state['bar_beat_index'] += 1
-        self.metronome_output.append([pitchnumber, duration,
-                                      in_chord, velocity])
 
     def chordstart(self, node, children):
         """
@@ -477,16 +445,15 @@ class MidiEvaluator():
         """
 
         state = self.processing_state
-        for note in state['notes']:
-            if len(note) > 1:
-                self.output.append(note)
+        if state['prior_chord_tone_count'] == 0:
+            for note in state['notes']:
+                if len(note) > 1:
+                    self.output.append(note)
 
-        state['notes'] = []
-        state['subbeats'] += 1
-        state['bar_subbeats'] += 1
+            state['notes'] = []
 
         state['in_chord'] = CHORD
-        state['chord_tone_count'] = 0
+        state['prior_chord_next_index'] = 0
 
     def rollstart(self, node, children):
         """
@@ -499,21 +466,15 @@ class MidiEvaluator():
                 self.output.append(note)
 
         state['notes'] = []
-        state['subbeats'] += 1
-        state['bar_subbeats'] += 1
 
         state['in_chord'] = ROLL
         state['chord_tone_count'] = 0
 
     def ornamentstart(self, node, children):
-        """ Init an ornament """
-        self.paren_start(ORNAMENT)
-
-    def paren_start(self, kind):
         """
+        Init an ornament
         Close any pending accumulations
         Initialize the state machine for chord tone counting.
-        `kind` must be one of: CHORD, ROLL, ORNAMENT
         """
         state = self.processing_state
         for note in state['notes']:
@@ -521,19 +482,9 @@ class MidiEvaluator():
                 self.output.append(note)
 
         state['notes'] = []
-        state['subbeats'] += 1
-        state['bar_subbeats'] += 1
 
-        state['in_chord'] = kind
+        state['in_chord'] = ORNAMENT
         state['chord_tone_count'] = 0
-
-    def pitch(self, node, children):
-        """
-        Deal with chord tones.
-        """
-        state = self.processing_state
-        if state['in_chord']:
-            state['chord_tone_count'] += 1
 
     def rparen(self, node, children):
         """
@@ -541,31 +492,35 @@ class MidiEvaluator():
         """
         state = self.processing_state
         if state['in_chord'] == ROLL:
-            #print("Closing roll")
-            state['notes'][-1][2] = ENDROLL
             ## Adjust starts and durations
             ## Before adjustments all durations are equal
             ## to the full subbeat duration.
             count = state['chord_tone_count']
-            subsub_duration = state['notes'][-1][1]/count
-            duration = 0
-            for i in range(-1, -count, -1):
-                duration += subsub_duration
+            index = state['beat_index']
+            subduration = self.subbeat_lengths[index]
+            subsub_duration = subduration/count
+            offset = 0
+            for i in range(1, count):
+                offset += subsub_duration
                 #print("i={},Adjusted duration = {}".format(i, duration))
-                state['notes'][i][1] = duration
+                state['notes'][i][1] += offset
+
+            state['subbeats'] += 1
+            state['bar_subbeats'] += 1
 
         if state['in_chord'] == ORNAMENT:
-            #print("Closing ornament")
-            state['notes'][-1][2] = ENDORNAMENT
             ## Adjust starts and durations
             ## Before adjustments all durations are equal
             ## to the full subbeat duration.
             count = state['chord_tone_count']
-            subsub_duration = state['notes'][-1][1]/count
-            for i in range(-1, -(count + 1), -1):
-                duration = subsub_duration
-                #print("i={},Adjusted duration = {}".format(i, duration))
-                state['notes'][i][1] = duration
+            index = state['beat_index']
+            subduration = self.subbeat_lengths[index]
+            subsub_duration = subduration/count
+            offset = 0
+            for i in range(count):
+                state['notes'][i][1] += offset
+                state['notes'][i][2] = state['notes'][i][1] + subsub_duration
+                offset += subsub_duration
             ## Ornament tones (other than the last) do not sustain,
             ## so flush all but the last to the output list
             for i in range(-count, -1):
@@ -573,10 +528,23 @@ class MidiEvaluator():
             ## Keep on the last in the extendable note list
             state['notes'] = [state['notes'][-1]]
 
+            state['subbeats'] += 1
+            state['bar_subbeats'] += 1
+            state['chord_tone_count'] = 1
+
         elif state['in_chord'] == CHORD:
-            state['notes'][-1][2] = ENDCHORD
+            ## push leftovers to output
+            nnotes = len(state['notes'])
+            nleftover = nnotes - state['chord_tone_count']
+            while nleftover > 0:
+                self.note2output(-nleftover, state)
+                nleftover -= 1
+
+            state['subbeats'] += 1
+            state['bar_subbeats'] += 1
 
         state['in_chord'] = NOTE
+        state['prior_chord_tone_count'] = state['chord_tone_count']
         state['chord_tone_count'] = 0
 
 
@@ -631,20 +599,45 @@ class MidiEvaluator():
           * Insert None as the midi pitch
         """
         state = self.processing_state
+        index = state['beat_index']
+        duration = self.subbeat_lengths[index]
+        start = self.subbeat_starts[index][state['subbeats']]
         if not state['in_chord']:
             for note in state['notes']:
                 if len(note) > 1:
+                    note[2] = start ## which is the end :-)
                     self.output.append(note)
-        index = state['beat_index']
-        duration = self.subbeat_lengths[index]
+
+        end = start + duration
         if not state['in_chord']:
             state['notes'] = []
             state['subbeats'] += 1
             state['bar_subbeats'] += 1
-        state['notes'].append([None, duration,
-                               state['in_chord'],
+            state['chord_tone_count'] = 0
+            state['prior_chord_tone_count'] = 0
+        state['notes'].append([None, start, end,
                                state['velocity'],
                               ])
+
+    def divadd(self, node, children):
+        """
+            Set the flag for this note to be inserted
+            in notes list
+        """
+        state = self.processing_state
+        if state['in_chord'] in (CHORD,):
+            state['add_div'] = True
+
+    def divdrop(self, node, children):
+        """
+        Drop a note from the notes list and append it to
+        the output
+        """
+        state = self.processing_state
+        if state['in_chord'] in (CHORD,):
+            index = state['prior_chord_next_index']
+            self.note2output(index, state)
+            state['prior_chord_tone_count'] -= 1
 
     def pitchname(self, node, children):
         """  pitchname = ~"[a-g]"i
@@ -676,28 +669,80 @@ class MidiEvaluator():
 
         pitchnumber = self.pitch_midinumber[pitchname]
         pitchnumber += alteration + 12 * state['octave']
-        if not state['in_chord']:
-            for note in state['notes']:
-                if len(note) > 1:
-                    self.output.append(note)
-        index = state['beat_index']
-        duration = self.subbeat_lengths[index]
-
         ## De-emphasize offbeats according to current de_emphasis value
         if self.is_downbeat(state):
             velocity = state['velocity'] ## downbeat gets full velocity
         else:
             velocity = state['velocity'] * state['de_emphasis']
 
+        state['alteration'] = 0
+        state['pitchname'] = pitchname
+        state['pending_note'] = (pitchnumber, velocity)
+
+    def pitch(self, node, children):
+        """
+        Deal with non-chord tones.
+        """
+        state = self.processing_state
+        index = state['beat_index']
+        duration = self.subbeat_lengths[index]
+        start = self.subbeat_starts[index][state['subbeats']]
+        if not state['in_chord']:
+            for note in state['notes']:
+                if len(note) > 1:
+                    note[2] = start ## which is the end :-)
+                    self.output.append(note)
+
+        end = start + duration
+        pitchnumber, velocity = state['pending_note']
         if not state['in_chord']:
             state['notes'] = []
             state['subbeats'] += 1
             state['bar_subbeats'] += 1
+            state['notes'].append([pitchnumber, start, end, velocity])
+            state['chord_tone_count'] = 0
+            state['prior_chord_tone_count'] = 0
+        elif state['in_chord'] in (ROLL, ORNAMENT):
+            ## Rolls and Ornaments
+            state['notes'].append([pitchnumber, start, end, velocity])
+            state['chord_tone_count'] += 1
 
-        state['notes'].append([pitchnumber, duration,
-                               state['in_chord'], velocity])
-        state['alteration'] = 0
-        state['pitchname'] = pitchname
+    def chordpitch(self, node, children):
+        """ Deal with chord tones """
+        state = self.processing_state
+        index = state['beat_index']
+        duration = self.subbeat_lengths[index]
+        pitchnumber, velocity = state['pending_note']
+        start = self.subbeat_starts[index][state['subbeats']]
+        end = start + duration
+        newnote = [pitchnumber, start, end, velocity]
+        pchindex = state['prior_chord_next_index']
+        if state['add_div']:
+            state['notes'].insert(pchindex, newnote)
+            state['prior_chord_next_index'] += 1
+            state['add_div'] = False
+        elif state['prior_chord_tone_count'] > 0:
+            self.note2output(state['prior_chord_next_index'],
+                             state, replacement=newnote)
+            state['prior_chord_next_index'] += 1
+            state['prior_chord_tone_count'] -= 1
+        else:
+            state['notes'].append(newnote)
+
+        state['chord_tone_count'] += 1
+
+    def chordhold(self, node, children):
+        """ Extend corresponding pitch in prior chord """
+        state = self.processing_state
+        index = state['beat_index']
+        duration = self.subbeat_lengths[index]
+        newend = self.subbeat_starts[index][state['subbeats']] + duration
+        if state['in_chord'] in (CHORD,):
+            index = state['prior_chord_next_index']
+            state['notes'][index][2] = newend
+            state['prior_chord_next_index'] += 1
+            state['prior_chord_tone_count'] -= 1
+            state['chord_tone_count'] += 1
 
     def hold(self, node, children):
         """
@@ -708,10 +753,16 @@ class MidiEvaluator():
         state = self.processing_state
         index = state['beat_index']
         duration = self.subbeat_lengths[index]
-        for note in state['notes']:
-            note[1] += duration
-        state['subbeats'] += 1
-        state['bar_subbeats'] += 1
+        newend = self.subbeat_starts[index][state['subbeats']] + duration
+        if state['in_chord'] in (CHORD,):
+            index = state['chord_tone_count']
+            state['notes'][index][2] = newend
+            state['chord_tone_count'] += 1
+        else:
+            for note in state['notes']:
+                note[2] = newend
+            state['subbeats'] += 1
+            state['bar_subbeats'] += 1
 
     def pitchname_interval_ascending(self, pname0, pname1):
         """
@@ -719,7 +770,6 @@ class MidiEvaluator():
         second pitch is the nearest higher from the first.
         """
         order = self.pitch_order
-        #print(order)
         return 1 + (order.index(pname1) - order.index(pname0)) % len(order)
 
     def octave_change(self, pname0, pname1):
@@ -735,9 +785,7 @@ class MidiEvaluator():
         order = self.pitch_order
         index0 = order.index(pname0)
         index1 = order.index(pname1)
-        #msg = ('interval {interval}, higher {higher}, lower {lower}, ' +
-        #       'index0 {index0}, index1 {index1}')
-        #print(msg.format(**locals()))
+
         if higher and index1 > index0:
             result = 0
         elif higher and index1 < index0:
@@ -778,7 +826,6 @@ class MidiEvaluator():
         ## Apply alterations according to
         ## current key.
         key = self.processing_state['keyname']
-        #print(pitchname, key, bar_accidental)
         return keysigs.get_alteration(pitchname, key, bar_accidental)
 
     def clear_bar_accidentals(self):
@@ -791,14 +838,26 @@ class MidiEvaluator():
         """ Return True or False """
         if state['bar_beat_index'] != 0:
             result = False
-        elif state['in_chord'] in (CHORD, ENDCHORD):
+        elif state['in_chord'] in (CHORD,):
             ## All notes of chords on downbeat are emphasized
             result = True
-        elif (state['in_chord'] in (ROLL, ENDROLL, ORNAMENT, ENDORNAMENT)
-              and state['chord_tone_count'] == 0):
+        elif state['in_chord'] in (ROLL, ORNAMENT):
             ## but only the first note of rolls and ornaments on downbeat
-            result = True
+            result = (state['chord_tone_count'] == 0)
         else:
             ## ordinary subbeats of beat 0 are not emphasized.
             result = (state['bar_subbeats'] == 0)
         return result
+
+    def note2output(self, index, state, replacement=None):
+        """
+        Append the note at index to output list and remove it from the notes
+        list. Return the number of notes moved (1 or 0)
+        """
+        try:
+            self.output.append(state['notes'].pop(index))
+            if replacement is not None:
+                state['notes'].insert(index, replacement)
+            return 1
+        except IndexError:
+            return 0

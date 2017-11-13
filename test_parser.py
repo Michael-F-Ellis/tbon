@@ -15,6 +15,19 @@ def test_pre_evaluation():
     mp.eval('#d - ef z |')
     assert mp.output == [1.0, 1.0, 0.5, 1.0]
 
+def test_subbeat_pre_evaluation():
+    mp = MidiPreEvaluator()
+    mp.eval('#d - - - |')
+    assert mp.subbeat_starts == [(0.0,), (1.0,), (2.0,), (3.0,)]
+    mp = MidiPreEvaluator()
+    mp.eval('#d - ef z | -g a - (ab) |')
+    assert mp.subbeat_starts == [(0.0,), (1.0,), (2.0, 2.5), (3.0,),
+                                 (4.0, 4.5), (5.0,), (6.0,), (7.0,)]
+    mp = MidiPreEvaluator()
+    mp.eval('#d - ef z | B=8  -g a - (ab) |')
+    assert mp.subbeat_starts == [(0.0,), (1.0,), (2.0, 2.5), (3.0,),
+                                 (4.0, 4.25), (4.5,), (5.0,), (5.5,)]
+
 def test_chord_pre_evaluation():
     mp = MidiPreEvaluator()
     mp.eval('(ac) - - - |')
@@ -94,6 +107,45 @@ def test_chord():
              [(60, 0, 1.0), (57, 1.0, 1.50), (59, 1.0, 1.50),
               (60, 1.50, 2.0), (62, 1.50, 2.0), (60, 2.0, 3.0)],
              octave=5)
+    evaluate('c (ab)(cde) (/ab) c |',
+             [(60, 0, 1.0),
+              (57, 1.0, 1.50), (59, 1.0, 1.50),
+              (60, 1.50, 2.0), (62, 1.50, 2.0), (64, 1.50, 2.0),
+              (57, 2.0, 3.0), (59, 2.0, 3.0),
+              (60, 3.0, 4.0)],
+             octave=5)
+
+def test_polychord():
+    evaluate('(ab)(+gcd) |',
+             [(57, 0.0, 0.50), (59, 0.0, 0.50),
+              (55, 0.50, 1.0), (60, 0.50, 1.0), (62, 0.50, 1.0)],
+             octave=5)
+    evaluate('c (ab)(+gcd) c |',
+             [(60, 0, 1.0),
+              (57, 1.0, 1.50), (59, 1.0, 1.50),
+              (55, 1.50, 2.0), (60, 1.50, 2.0), (62, 1.50, 2.0),
+              (60, 2.0, 3.0)],
+             octave=5)
+    evaluate('c (ab)(+gcd+e) c |',
+             [(60, 0, 1.0), (57, 1.0, 1.50), (59, 1.0, 1.50),
+              (55, 1.50, 2.0), (60, 1.50, 2.0),
+              (62, 1.50, 2.0), (64, 1.50, 2.0),
+              (60, 2.0, 3.0)],
+             octave=5)
+    evaluate('c (ab)(+gx^d+e) c |',
+             [(60, 0, 1.0), (57, 1.0, 1.50), (59, 1.0, 1.50),
+              (55, 1.50, 2.0), (62, 1.50, 2.0), (64, 1.50, 2.0),
+              (60, 2.0, 3.0)],
+             octave=5)
+    evaluate('c (ab)(+gx-+^e) c |',
+             [(60, 0, 1.0), (57, 1.0, 1.50),
+              (55, 1.50, 2.0), (59, 1.0, 2.0), (64, 1.50, 2.0),
+              (60, 2.0, 3.0)],
+             octave=5)
+    evaluate('K=A@ (73) - (-#2) - |', [(60, 0.0, 2.0), (55, 0.0, 4.0),
+                                       (59, 2.0, 4.0)],
+             numeric=True,
+             octave=5)
 
 def test_roll():
     evaluate('(:ab) |',
@@ -109,6 +161,12 @@ def test_roll():
              [(57, 0.0, 2.0), (59, 0.2, 2.0), (60, 0.4, 2.0),
               (62, 0.6, 2.0), (64, 0.8, 2.0)],
              octave=5)
+    evaluate('(:1351) 6 (572) |',
+             [(60, 0.0, 1.0), (64, 0.25, 1.0), (67, 0.5, 1.0), (72, 0.75, 1.0),
+              (69, 1.0, 2.0),
+              (67, 2.0, 3.0), (71, 2.0, 3.0), (74, 2.0, 3.0)],
+             numeric=True,
+             octave=5)
 
 def test_ornament():
     evaluate('(~ab) |',
@@ -116,6 +174,17 @@ def test_ornament():
              octave=5)
     evaluate('(~ab) - |',
              [(57, 0.0, 0.50), (59, 0.50, 2.0)],
+             octave=5)
+    evaluate('(~ab)c (ab) |',
+             [(57, 0.0, 0.25), (59, 0.25, .50), (60, 0.50, 1.0),
+              (57, 1.0, 2.0), (59, 1.0, 2.0)],
+             octave=5)
+    evaluate('(~^1717) 6 (572) |',
+             [(72, 0.0, 0.25), (71, 0.25, 0.5),
+              (72, 0.5, 0.75), (71, 0.75, 1.0),
+              (69, 1.0, 2.0),
+              (67, 2.0, 3.0), (71, 2.0, 3.0), (74, 2.0, 3.0)],
+             numeric=True,
              octave=5)
 
 def test_comment():
@@ -286,16 +355,17 @@ def evaluate(source, expected, octave=0,
         assert t == approx(expected[i])
 
 def test_metronome():
-    metroevaluate('a b - cd  |', [(76, 0, 1, 0.8), (77, 1, 2, 0.8),
-                                  (77, 2, 3, 0.8), (77, 3, 4, 0.8)],
+    metroevaluate('a b - cd  |', [(76, 0.0, 1.0, 0.8), (77, 1.0, 2.0, 0.8),
+                                  (77, 2.0, 3.0, 0.8), (77, 3.0, 4.0, 0.8)],
                   octave=5,
                   ignore_velocity=False)
 
-    metroevaluate('B=4. a b |', [(76, 0, 1.5, 0.8), (77, 1.5, 3, 0.8)],
+    metroevaluate('B=4. a b |', [(76, 0.0, 1.5, 0.8), (77, 1.5, 3.0, 0.8)],
                   octave=5,
                   ignore_velocity=False)
 
-    metroevaluate('B=4. D=0.25 a b |', [(76, 0, 1.5, 0.8), (77, 1.5, 3, 0.6)],
+    metroevaluate('B=4. D=0.25 a b |', [(76, 0.0, 1.5, 0.8),
+                                        (77, 1.5, 3.0, 0.6)],
                   octave=5,
                   ignore_velocity=False)
 
@@ -310,5 +380,6 @@ def metroevaluate(source, expected, octave=0,
                       ignore_velocity=ignore_velocity)
     m.set_octave(octave)
     m.eval(source)
+    print(m.metronome_output)
     for i, t in enumerate(m.metronome_output):
         assert t == approx(expected[i])
