@@ -10,10 +10,20 @@ import os
 import argparse
 from midiutil import MIDIFile, SHARPS, FLATS, MAJOR, MINOR
 from parser import MidiEvaluator
+def evaluate(source, numeric=True, octave=5):
+    """ Run the MidiEvaluator and return the output """
+    if numeric:
+        pitches = tuple('1234567')
+    else:
+        pitches = tuple('cdefgab')
 
-def make_midi(source, outfile, transpose=0,
+    tbon = MidiEvaluator(pitch_order=pitches)
+    tbon.set_octave(octave)
+    tbon.eval(source, verbosity=0)
+    return tbon
+
+def make_midi(tbon, outfile, transpose=0,
               track=0, channel=0,
-              octave=5, numeric=True,
               firstbar=0,
               quiet=False,
               metronome=0):
@@ -32,18 +42,10 @@ def make_midi(source, outfile, transpose=0,
                  numbers (1234567) with 1 corresponding to 'c'.
     """
 
-    if numeric:
-        pitches = tuple('1234567')
-    else:
-        pitches = tuple('cdefgab')
-
     ## MIDIUtil zero indexs, so channel 9 is 10,
     ## the normal channel for percussion
     metronome_channel = 9
 
-    tbon = MidiEvaluator(pitch_order=pitches)
-    tbon.set_octave(octave)
-    tbon.eval(source, verbosity=0)
     notes = tbon.transpose_output(transpose)
     metronotes = tbon.metronome_output
     if metronome == 0:
@@ -54,7 +56,8 @@ def make_midi(source, outfile, transpose=0,
         numTracks = 2
     meta = tbon.meta_output
     beat_map = tbon.beat_map
-    MyMIDI = MIDIFile(numTracks, adjust_origin=True)
+    MyMIDI = MIDIFile(numTracks, adjust_origin=True,
+                      removeDuplicates=False, deinterleave=False)
     #MyMIDI.addTempo(track, 0, tempo)
 
     for m in meta:
@@ -161,6 +164,8 @@ if __name__ == '__main__':
     _parser.add_argument('-q', '--quiet', action='store_true',
                          help="Don't print the input file and "
                          "bar map to stdout.")
+    _parser.add_argument('-v', '--verbose', action='store_true',
+                         help="dump the MidiEvaluator output to stdout")
     _parser.add_argument('-x', '--transpose', type=int, default=0,
                          help="Number of semitones to transpose up or down."
                          " The default is 0")
@@ -183,23 +188,24 @@ if __name__ == '__main__':
             _source = infile.read()
         if not _args.quiet:
             print(_source)
-        make_midi(_source, _outfile,
+        _tbon = evaluate(_source, _numeric)
+        if _args.verbose:
+            print(_tbon.output)
+
+        make_midi(_tbon, _outfile,
                   transpose=_args.transpose,
-                  numeric=_numeric,
                   firstbar=_args.firstbar,
                   quiet=_args.quiet,
                   metronome=0)
         print("Created {}".format(_outfile))
-        make_midi(_source, _metro_outfile,
+        make_midi(_tbon, _metro_outfile,
                   transpose=_args.transpose,
-                  numeric=_numeric,
                   firstbar=_args.firstbar,
                   quiet=True,
                   metronome=1)
         print("Created {}".format(_metro_outfile))
-        make_midi(_source, _both_outfile,
+        make_midi(_tbon, _both_outfile,
                   transpose=_args.transpose,
-                  numeric=_numeric,
                   firstbar=_args.firstbar,
                   quiet=True,
                   metronome=2)

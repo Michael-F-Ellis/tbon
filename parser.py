@@ -40,14 +40,13 @@ def parse(source):
         barline = "|"
         extendable = chord / roll / ornament / pitch / rest
         pitch = octave* alteration? pitchname
-        divadd = "+"
-        divdrop = "x"
         chord = chordstart chorditem chorditem* rparen
         chordstart = "("
-        rparen = ")"
-        chorditem = chordpitch / chordhold / divdrop
-        chordpitch = divadd? octave* alteration? pitchname
+        chorditem = chordpitch / chordhold / chordrest
+        chordpitch = octave* alteration? pitchname
         chordhold = '-'
+        chordrest = "_" / "z"
+        rparen = ")"
         roll = rollstart pitch pitch+ rparen
         rollstart = "(:"
         ornament = ornamentstart pitch pitch+ rparen
@@ -261,7 +260,6 @@ class MidiEvaluator():
         self.subbeat_starts = []
         self.beat_lengths = []
         self.processing_state = dict(
-            add_div=False,
             notes=[],
             basetempo=tempo,
             tempo=tempo,
@@ -352,6 +350,9 @@ class MidiEvaluator():
         ## Add the last note or chord to the list,
         for note in state['notes']:
             self.output.append(note)
+
+        ## sort output by start time
+        self.output = sorted(self.output, key=lambda x: x[1])
 
         ## Convert the music output
         converted = []
@@ -619,26 +620,6 @@ class MidiEvaluator():
                                state['velocity'],
                               ])
 
-    def divadd(self, node, children):
-        """
-            Set the flag for this note to be inserted
-            in notes list
-        """
-        state = self.processing_state
-        if state['in_chord'] in (CHORD,):
-            state['add_div'] = True
-
-    def divdrop(self, node, children):
-        """
-        Drop a note from the notes list and append it to
-        the output
-        """
-        state = self.processing_state
-        if state['in_chord'] in (CHORD,):
-            index = state['prior_chord_next_index']
-            self.note2output(index, state)
-            state['prior_chord_tone_count'] -= 1
-
     def pitchname(self, node, children):
         """  pitchname = ~"[a-g]"i
         Encountering a pitchname triggers the following actions:
@@ -701,7 +682,7 @@ class MidiEvaluator():
             state['bar_subbeats'] += 1
             state['notes'].append([pitchnumber, start, end, velocity])
             state['chord_tone_count'] = 0
-            state['prior_chord_tone_count'] = 0
+            state['prior_chord_tone_count'] = 1
         elif state['in_chord'] in (ROLL, ORNAMENT):
             ## Rolls and Ornaments
             state['notes'].append([pitchnumber, start, end, velocity])
@@ -717,18 +698,15 @@ class MidiEvaluator():
         end = start + duration
         newnote = [pitchnumber, start, end, velocity]
         pchindex = state['prior_chord_next_index']
-        if state['add_div']:
-            state['notes'].insert(pchindex, newnote)
+        try:
+            ## Replace if possible, left to right
+            self.output.append(state['notes'][pchindex])
+            state['notes'][pchindex] = newnote
             state['prior_chord_next_index'] += 1
-            state['add_div'] = False
-        elif state['prior_chord_tone_count'] > 0:
-            self.note2output(state['prior_chord_next_index'],
-                             state, replacement=newnote)
-            state['prior_chord_next_index'] += 1
-            state['prior_chord_tone_count'] -= 1
-        else:
+        except IndexError:
+            ## All prior chord notes already replaced
             state['notes'].append(newnote)
-
+            state['prior_chord_next_index'] += 1
         state['chord_tone_count'] += 1
 
     def chordhold(self, node, children):
@@ -763,6 +741,31 @@ class MidiEvaluator():
                 note[2] = newend
             state['subbeats'] += 1
             state['bar_subbeats'] += 1
+
+    def chordrest(self, node, children):
+        """
+        Drop a note from the notes list and append it to
+        the output, replacing it with a rest.
+        """
+        state = self.processing_state
+        index = state['beat_index']
+        duration = self.subbeat_lengths[index]
+        pitchnumber, velocity = None, state['velocity']
+        start = self.subbeat_starts[index][state['subbeats']]
+        end = start + duration
+        newnote = [pitchnumber, start, end, velocity]
+        pchindex = state['prior_chord_next_index']
+        try:
+            ## Replace if possible, left to right
+            self.output.append(state['notes'][pchindex])
+            state['notes'][pchindex] = newnote
+            state['prior_chord_next_index'] += 1
+            print("Replaced with rest.")
+            state['chord_tone_count'] += 1
+        except IndexError:
+            msg = "Not enough notes in prior chord."
+            print(msg)
+            raise
 
     def pitchname_interval_ascending(self, pname0, pname1):
         """
