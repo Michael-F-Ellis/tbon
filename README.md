@@ -64,7 +64,7 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
     ![America](doc/img/bernstein_america.png)
 
 
-### The notation
+### Basic notation
   * __Beats__ are groups of pitches, rests and holds followed by whitespace. 
     * The measure below has two beats.
         ```
@@ -140,13 +140,52 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
           ![](doc/img/unicode_accidentals.png)
       
       
-  * __Melody direction__: Pitches move up or down using the Lilypond relative pitch entry convention.
+  * __Octave marks__: Pitches move up or down using the Lilypond relative pitch entry convention.
       * By default, the pitch of each note is placed above or below its predecessor based on which interval is smaller.
           * Thus, `c g` will put the g below the c since the 4th below is smaller than the 5th above.
           * To select the more distant upper pitch, you'd write `c ^g`
           * Similarly you'd write 'c /d' to put choose the d a 7th below the c.
+          * Use multiple octave marks to move by more than 1 octave, e.g. `\\c` or `^^c` to move down or up by 2 octaves.
           * The first pitch in a melody is relative to Middle C (midi #60). 
-  
+          * Example:
+            ```
+            c g c ^g | c /d d c |
+            ```
+            ![](doc/img/octaves.png)
+  * __Beat Note__
+    * Syntax: `B=N` where N is one of `2 4. 4 8`
+      * `2` means half-note beat
+      * `4.` means dotted quarter note beat (need for compound meters like 6/8)
+      * `4` means quarter note beat
+      * `8` means eighth-note beat
+    * Not required to produce midi files with correct note durations.
+    * Useful for generating correct time signatures in the midi output file.
+      * Time signatures are produced by counting the number of beats in each bar in conjunction with the most recent beat note.
+    * Example: See examples/meter.tba
+      ```
+      /* Changing meter and tempo. Constant quarter-note duration. */
+      /* 4/4  */
+      T=120
+      B=4 c d e f |
+
+      /* 6/8  */
+      B=4. gag gag |
+
+      /* 2/4  */
+      B=4 c c |
+
+      /* 6/8  */
+      B=4. gag gag |
+
+      /* 2/4 */
+      B=4 c c |
+      ```
+      ![Meter](doc/img/meter.png)
+    * Changing the beat note does not change tempo.
+      * The adjustment follows common practice in printed music, namely that changing meter numerator without an explicit tempo change retains the durations of printed notes before and after the change.  If you want a different tempo, you must explicitly change it.
+      
+  ### Extended Notation
+  Using only the notation above, you can quickly write any single voice melody no matter how complex the rhythm. That's quite a lot for only a handful of symbols. The resultant midi file will have a C-major key signature, the tempo will be fixed at 120 bpm, and the midi file will interpret the beat duration as quarter notes. To move beyond those restrictions, continue reading.
     
 
   * __Chords__
@@ -288,58 +327,34 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
      1 2 3 - | /* comment between bars */ 1 2 3 - |
      /* Coment at end of file */
     ```
-  * __Beat Note__
-    * Syntax: `B=N` where N is one of `2 4. 4 8`
-      * `2` means half-note beat
-      * `4.` means dotted quarter note beat (need for compound meters like 6/8)
-      * `4` means quarter note beat
-      * `8` means eighth-note beat
-    * Not required to produce midi files with correct note durations.
-    * Useful for generating correct time signatures in the midi output file.
-      * Time signatures are produced by counting the number of beats in each bar in conjunction with the most recent beat note.
-    * Example: See examples/meter.tba
-      ```
-      /* Changing meter and tempo. Constant quarter-note duration. */
-      /* 4/4  */
-      T=120
-      B=4 c d e f |
 
-      /* 6/8  */
-      B=4. gag gag |
-
-      /* 2/4  */
-      B=4 c c |
-
-      /* 6/8  */
-      B=4. gag gag |
-
-      /* 2/4 */
-      B=4 c c |
-      ```
-      ![Meter](doc/img/meter.png)
-    * Changing the beat note does not change tempo.
-      * The adjustment follows common practice in printed music, namely that changing meter numerator without an explicit tempo change retains the durations of printed notes before and after the change.  If you want a different tempo, you must explicitly change it.
       
 ## Command line
 The top level executable is `tbon.py`. As I mentioned earlier it's useful to make a symbolic link to it somewhere in your path. For example, I did `ln -s ~/tbon.py ~/bin/tbon` so I can type `tbon` from any directory to process input files. Here's the help available by typing `tbon -h`.
 ```
-Michaels-Mac-mini:tbon mellis$ tbon -h
-usage: tbon [-h] [-x TRANSPOSE] [-b FIRSTBAR] filename [filename ...]
+$ tbon -h
+usage: tbon [-h] [-b FIRSTBAR] [-q] [-v]
+            filename [filename ...]
 
 positional arguments:
   filename              one or more files of tbon notation
 
 optional arguments:
   -h, --help            show this help message and exit
-  -x TRANSPOSE, --transpose TRANSPOSE
-                        Number of semitones to transpose up or down. The default
-                        is 0.
   -b FIRSTBAR, --firstbar FIRSTBAR
-                        The measure number of the first measure. (Used to align
-                        beat map output)
+                        The measure number of the first measure. (Used to
+                        align beat map output)
+  -q, --quiet           Don't print the input file and bar map to stdout.
+  -v, --verbose         dump the MidiEvaluator output to stdout
+
  ```
-   * Running, say, `tbon myfile.tba` will produce myfile.mid. 
-   * Running `tbon -x 3 myfile.tba` will produce a myfile.mid transposed up 3 semitones.
+   * Running, say, `tbon myfile.tba` will produce three output files:
+     * myfile.mid
+     * myfile_with_metronome.mid
+     * myfile_metronome_only.mid
+     
+     The first contains just the music you entered. The second has a separate metronome track that follows your tempo and metter changes. You may find this quite useful for learning transcribed music. The metronome only file has just the metronome and can be useful for testing how well you play or sing a piece without accompaniment.
+     
 ### File extensions
   * Tbon uses the file extension to determine whether to expect numbers or letters as pitch names.
   * `.tba` indicates letters.
