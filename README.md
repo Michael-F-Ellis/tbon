@@ -175,7 +175,23 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
       (db)(-a) (c-)(-g) | (fa) - |
       ```
       ![](doc/img/suspension.png)
+    
+    By adding holds in the 'oompah' example from the preceding section, we can make the bass notes continuous, like so:
+    * Example 2
+      ```
+      T=88 B=4.
+      /c(-^ce)(-ce)  //g-(-^ce)(-bd)(-ce)- /c(-^ce)(-ce)  //g-(-^ce)(-bd)(-ce)-  |
+      /c(-^ce)(-ce)  //g-(-^ce)(-bd)(-ce)- t=0.9 //g(-a)(-b) (c^gce) |
+      ```
+      ![](doc/img/oompoly.png)
 
+    You may use rests within chords to stop one or more voices while sustaining others. 
+    * Example 3
+      ```
+      (cegc) (z-az) (-f--) | (cegc) - - |
+      ```
+      ![](doc/img/chord_rest.png)
+    
   * __Rolls__
     * Pitches inside `(: )` are attacked in sequence over the duration of 1 sub-beat and sustained afterwards in the same manner as chords.
   * __Ornaments__
