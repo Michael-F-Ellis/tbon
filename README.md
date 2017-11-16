@@ -130,7 +130,14 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
       - Accidentals come __before__ the pitch, i.e. `#f` not `f#`.
       - Accidentals persist until the end of the measure (standard music convention)
       - Unicode symbols are supported but most keyboard layouts don't include them in any convenient way.
-        - Example: `c♭c 𝄫c♭c ♮c♯c 𝄪c♯c | c - - - |`
+        - Example:
+          ```
+          /* Unicode accidental support. */
+          c♭c 𝄫c♭c ♮c♯c 𝄪c♯c | c - - - |
+          /* is the same as */
+          c@c @@c@c %c#c ##c#c | c - - - |
+          ```
+          ![](doc/img/unicode_accidentals.png)
       
       
   * __Melody direction__: Pitches move up or down using the Lilypond relative pitch entry convention.
