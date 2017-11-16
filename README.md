@@ -165,7 +165,17 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
       /c(^ce)(ce)  //g-(^ce)(bd)(ce)- t=0.9 //gab (c^gce) |
       ```
       ![](doc/img/oompah.png)
-      
+  * __Polyphony__
+  
+    In the chord examples above, all the notes in each chord end when the next chord or note begins. But sometimes, we want to sustain notes into the the next chord.  In tbon, this is accomplished with the 'hold' symbol '-'.  Within a chord, the hold symbol means 'sustain the corresponding note from the previous chord'.
+    * Example 1
+      ```
+      /* Two voices with suspensions */
+      K=F B=2
+      (db)(-a) (c-)(-g) | (fa) - |
+      ```
+      ![](doc/img/suspension.png)
+
   * __Rolls__
     * Pitches inside `(: )` are attacked in sequence over the duration of 1 sub-beat and sustained afterwards in the same manner as chords.
   * __Ornaments__
