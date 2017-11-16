@@ -1,0 +1,4 @@
+/* Unicode accidental support */
+c♭c 𝄫c♭c ♮c♯c 𝄪c♯c | c - - - |
+/* is the same as */
+c@c @@c@c %c#c ##c#c | c - - - |
