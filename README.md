@@ -252,7 +252,31 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
       6 7 (~171717)6 (572)(~1767) | 15 35 (//1^1351) - |
       ```
       ![Ornaments](doc/img/ornaments.png)
-      
+  * __Multiple Voices__
+  
+    Use the *partswitch*, `P=n` to write music in multiple parts.
+  * Example:
+    ```
+    /* Last 4 bars of Deck The Hall (SATB)  */
+    P=0 K=F  ^c -b a g | f g a f |  ^dd dd c  -b  | a t=0.8 g t=0.5 f   - |
+    P=1 K=F  ^a -g f e | d e c c |   ff ff a  -g  | f       e       c   - |
+    P=2 K=F   c -c c b | a b a a |   bb bb a  -b  | a       b       a   - |
+    P=3 K=F  /f -f f c | d c f f |  /bc de f -/b  | c       c    (/f^f) - |
+    ```
+    ![](doc/img/deckthehall.png)
+    
+    * You may use as many voices as needed.
+    * The voices must have contiguous numbers starting at 0.
+    * Voice 0 is special. Tempo changes must be given there. Tempo changes in other voices are ignored.
+    * The following must be supplied per voice:
+      * Key Signature
+      * Beat Note
+      * Velocity
+      * De-emphasis
+    * You may interleave part segments in different lines as you wish, or write each voice out in it's entirety.
+    * All voices start at time 0. If you want a voice to be silent at the beginning, you must supply measures of rest.
+    * Divisi are supported within voices. See the last bar of the bass line in the example and the Polyphony section, above.
+    
   * __Tempo__
     * Tbon supports two kinds of tempo markers, absolute and relative.
     * Either may appear anywhere except within a beat.
