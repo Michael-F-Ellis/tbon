@@ -10,7 +10,7 @@ import os
 import argparse
 from midiutil import MIDIFile, SHARPS, FLATS, MAJOR, MINOR
 from parser import MidiEvaluator
-def evaluate(source, numeric=True, octave=5):
+def evaluate(source, numeric=True):
     """ Run the MidiEvaluator and return the output """
     if numeric:
         pitches = tuple('1234567')
@@ -18,12 +18,11 @@ def evaluate(source, numeric=True, octave=5):
         pitches = tuple('cdefgab')
 
     tbon = MidiEvaluator(pitch_order=pitches)
-    tbon.set_octave(octave)
     tbon.eval(source, verbosity=0)
     return tbon
 
-def make_midi(tbon, outfile, transpose=0,
-              track=0, channel=0,
+def make_midi(tbon, outfile,
+              channel=0,
               firstbar=0,
               quiet=False,
               metronome=0):
@@ -46,20 +45,22 @@ def make_midi(tbon, outfile, transpose=0,
     ## the normal channel for percussion
     metronome_channel = 9
 
-    notes = tbon.transpose_output(transpose)
+    parts = tbon.output
+    numparts = len(parts)
+    print("Found {} parts".format(numparts))
     metronotes = tbon.metronome_output
     if metronome == 0:
-        numTracks = 1
+        numTracks = numparts
     elif metronome == 1:
         numTracks = 1
     else:
-        numTracks = 2
+        numTracks = 1 + numparts
     meta = tbon.meta_output
     beat_map = tbon.beat_map
     MyMIDI = MIDIFile(numTracks, adjust_origin=True,
                       removeDuplicates=False, deinterleave=False)
     #MyMIDI.addTempo(track, 0, tempo)
-
+    track = 0
     for m in meta:
         if m[0] == 'T':
             MyMIDI.addTempo(track, m[1], m[2])
@@ -105,14 +106,17 @@ def make_midi(tbon, outfile, transpose=0,
                                stop - start,
                                int(velocity * 127))
     if metronome == 0:
-        add_notes(notes, track, channel)
+        for track, notes in enumerate(parts):
+            add_notes(notes, track, channel)
     elif metronome == 1:
         ## Metronome output only.
         add_notes(metronotes, track, metronome_channel)
     else:
         ## Both
-        add_notes(notes, track, channel)
-        add_notes(metronotes, 1, metronome_channel)
+        for track, notes in enumerate(parts):
+            add_notes(notes, track, channel)
+        metrotrack = numparts ## because 0-indexing
+        add_notes(metronotes, metrotrack, metronome_channel)
 
     with open(outfile, "wb") as output_file:
         MyMIDI.writeFile(output_file)
@@ -166,9 +170,6 @@ if __name__ == '__main__':
                          "bar map to stdout.")
     _parser.add_argument('-v', '--verbose', action='store_true',
                          help="dump the MidiEvaluator output to stdout")
-    _parser.add_argument('-x', '--transpose', type=int, default=0,
-                         help="Number of semitones to transpose up or down."
-                         " The default is 0")
     _parser.add_argument("filename", nargs='+',
                          help="one or more files of tbon notation")
     _args = _parser.parse_args()
@@ -193,19 +194,16 @@ if __name__ == '__main__':
             print(_tbon.output)
 
         make_midi(_tbon, _outfile,
-                  transpose=_args.transpose,
                   firstbar=_args.firstbar,
                   quiet=_args.quiet,
                   metronome=0)
         print("Created {}".format(_outfile))
         make_midi(_tbon, _metro_outfile,
-                  transpose=_args.transpose,
                   firstbar=_args.firstbar,
                   quiet=True,
                   metronome=1)
         print("Created {}".format(_metro_outfile))
         make_midi(_tbon, _both_outfile,
-                  transpose=_args.transpose,
                   firstbar=_args.firstbar,
                   quiet=True,
                   metronome=2)

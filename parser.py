@@ -20,13 +20,12 @@ def parse(source):
     """Parse tbon Source"""
     grammar = Grammar(
         """
-        score = comment* partspec? music*
-        partspec = ws "[" (partname ws)+ "]" ws
-        partname = ~r"[a-zA-Z0-9_-]+"
-        music = (comment / bar)+ ws*
+        score = comment*  music*
+        music = (comment / (partswitch*  bar+))+ ws*
+        partswitch = "P=" intnum
         comment = ws* ~r"/\*.*?\*/"s ws*
         bar = (ws* (meta / beat) ws)+ barline
-        meta = partspec /beatspec / key / tempo /
+        meta = beatspec / key / tempo /
                relativetempo / velocity / de_emphasis
         beatspec = "B=" ("2." / "2" / "4." / "4" / "8." / "8")
         key = "K=" keyname
@@ -35,6 +34,7 @@ def parse(source):
         relativetempo = "t=" floatnum
         velocity = "V=" floatnum
         de_emphasis = "D=" floatnum
+        intnum = ~r"\d+"i
         floatnum = ~r"\d*\.?\d+"i
         beat = subbeat+
         barline = "|"
@@ -85,6 +85,7 @@ TIMESIG_LUT = {
     "2":(1, 2),
     "4.":(3, 8),
     "4":(1, 4),
+    "8.":(1, 16),
     "8":(1, 8),
 }
 
@@ -101,23 +102,17 @@ class MidiPreEvaluator():
     sub-beat durations for each beat.
     """
     #pylint: disable=dangerous-default-value
-    def __init__(self, tempo=120):
+    def __init__(self):
+        self.first_tempo = 120
         self.output = []
         self.meta_output = []
         self.beat_map = []
         self.beat_lengths = []
         self.subbeat_starts = []
-        self.processing_state = dict(
-            basetempo=tempo,
-            tempo=tempo,
-            beat_index=0,
-            bar_beat_count=0,
-            in_chord=False,
-            chord_tone_count=0,
-            subbeats=0,
-            beatspec="4",
-            timesig=('M', 0.0, 4, 4),
-        )
+        self.subbeat_lengths = []
+        self.partstates = {0: self.new_part_state()}
+        self.processing_state = self.partstates[0]
+        self.current_part = 0
     #pylint: enable=dangerous-default-value
 
     def eval(self, source, verbosity=2):
@@ -140,13 +135,60 @@ class MidiPreEvaluator():
             if verbosity > 1:
                 print('state={}'.format(self.processing_state))
 
+    def score(self, node, children):
+        """
+        Gather outputs for all parts
+        """
+        if len(self.partstates) == 1:
+            ## Unnested output
+            d = self.partstates[0]
+            self.subbeat_starts = d['subbeat_starts']
+            for n in d['subbeat_lengths']:
+                self.subbeat_lengths.append(n)
+        else:
+            for _, d in self.partstates.items():
+                self.subbeat_lengths.append(tuple(d['subbeat_lengths']))
+                self.subbeat_starts.append(d['subbeat_starts'])
+
+    def partswitch(self, node, children):
+        """ Switch to new part """
+        newpartnumber = int(node.children[1].text)
+        try:
+            self.processing_state = self.partstates[newpartnumber]
+        except KeyError:
+            ## Doesn't exist yet. Create it.
+            pstate = self.new_part_state()
+            self.partstates[newpartnumber] = pstate
+            self.processing_state = self.partstates[newpartnumber]
+            self.current_part = newpartnumber
+
+    def new_part_state(self):
+        """ Returns a new part state dict """
+        return dict(
+            basetempo=self.first_tempo,
+            tempo=self.first_tempo,
+            beat_index=0,
+            bar_beat_count=0,
+            in_chord=False,
+            chord_tone_count=0,
+            subbeats=0,
+            beatspec="4",
+            timesig=('M', 0.0, 4, 4),
+            subbeat_lengths=[],
+            subbeat_starts=[],
+            )
+
     def tempo(self, node, children):
         """ Install a new tempo """
-        state = self.processing_state
-        newtempo = int(round(float(node.children[1].text)))
-        assert newtempo != 0
-        state['basetempo'] = state['tempo'] = newtempo
-        self.insert_tempo_meta(state)
+        if self.current_part == 0:
+            state = self.processing_state
+            newtempo = int(round(float(node.children[1].text)))
+            assert newtempo != 0
+            state['basetempo'] = state['tempo'] = newtempo
+            self.insert_tempo_meta(state)
+        else:
+            print(
+                "Ignoring tempo spec in part {}.".format(self.current_part))
 
     def key(self, node, children):
         """ Insert a key signature """
@@ -158,11 +200,15 @@ class MidiPreEvaluator():
 
     def relativetempo(self, node, children):
         """ Adjust the current tempo without altering the base tempo """
-        state = self.processing_state
-        xtempo = float(node.children[1].text)
-        assert xtempo != 0.0
-        state['tempo'] = int(round(xtempo * state['basetempo']))
-        self.insert_tempo_meta(state)
+        if self.current_part == 0:
+            state = self.processing_state
+            xtempo = float(node.children[1].text)
+            assert xtempo != 0.0
+            state['tempo'] = int(round(xtempo * state['basetempo']))
+            self.insert_tempo_meta(state)
+        else:
+            print(
+                "Ignoring tempo spec in part {}.".format(self.current_part))
 
     def beatspec(self, node, children):
         """
@@ -196,8 +242,8 @@ class MidiPreEvaluator():
         subbeats = []
         for n in range(state['subbeats']):
             subbeats.append(state['beat_index'] + (n * subbeat_length))
-        self.subbeat_starts.append(tuple(subbeats))
-
+        #self.subbeat_starts.append(tuple(subbeats))
+        state['subbeat_starts'].append(tuple(subbeats))
         state['subbeats'] = 0
         state['beat_index'] += beat_length
         state['bar_beat_count'] += 1
@@ -208,7 +254,7 @@ class MidiPreEvaluator():
                     break
             else:
                 self.insert_tempo_meta(state, index=0)
-        self.output.append(subbeat_length)
+        state['subbeat_lengths'].append(subbeat_length)
         self.beat_lengths.append(beat_length)
 
     def barline(self, node, children):
@@ -247,9 +293,10 @@ class MidiEvaluator():
     actual Midi NoteOn and NoteOff events and playing playing them is left up
     to other software.
     """
-    def __init__(self, tempo=120,
+    def __init__(self,
                  pitch_order=tuple('cdefgab'),
                  ignore_velocity=False):
+        self.first_tempo = 120
         self.pitch_order = pitch_order
         self.ignore_velocity = ignore_velocity
         self.pitch_midinumber = dict(zip(pitch_order, (0, 2, 4, 5, 7, 9, 11)))
@@ -258,18 +305,25 @@ class MidiEvaluator():
         self.meta_output = []
         self.beat_map = ()
         self.subbeat_starts = []
+        self.subbeat_lengths = None
         self.beat_lengths = []
-        self.processing_state = dict(
+        self.partstates = {}
+        self.processing_state = None
+        self.current_part = None
+
+    def new_part_state(self, newpartnumber):
+        """ Returns a new part state dict """
+        return dict(
             notes=[],
-            basetempo=tempo,
-            tempo=tempo,
+            basetempo=self.first_tempo,
+            tempo=self.first_tempo,
             beat_index=0,
             subbeats=0,
             bar_beat_index=0,
             bar_subbeats=0,
             octave=5, ## middle C, midi number 60
             alteration=0,
-            pitchname=pitch_order[0],
+            pitchname=self.pitch_order[0],
             bar_accidentals={},
             in_chord=NOTE,
             chord_tone_count=0,
@@ -278,29 +332,28 @@ class MidiEvaluator():
             keyname="C",
             velocity=0.8,
             de_emphasis=1.0,
-        )
-        self.subbeat_lengths = None
-        self.beat_lengths = []
-
-    def set_octave(self, midi_octave_number):
-        """
-        Change the processing state octave. If needed
-        """
-        assert 0 <= midi_octave_number <= 10
-        self.processing_state['octave'] = midi_octave_number
+            output=[],
+            )
 
     def eval(self, source, verbosity=2):
         """Evaluate tbon source"""
         ## Preprocess once only.
         if self.subbeat_lengths is None:
-            mp = MidiPreEvaluator(tempo=self.processing_state['tempo'])
+            mp = MidiPreEvaluator()
             mp.eval(source, verbosity=0)
-            self.subbeat_lengths = mp.output
+            self.subbeat_lengths = mp.subbeat_lengths
             self.subbeat_starts = mp.subbeat_starts
             self.beat_lengths = mp.beat_lengths
             self.meta_output = mp.meta_output
             self.beat_map = tuple(mp.beat_map)
-
+            ## Update each partstate
+            pstates = self.partstates ## shorter name
+            for num, state in mp.partstates.items():
+                pstates[num] = self.new_part_state(num)
+                pstates[num]['subbeat_starts'] = state['subbeat_starts']
+                pstates[num]['subbeat_lengths'] = state['subbeat_lengths']
+            self.processing_state = pstates[0]
+            self.current_part = 0
             #print("PreEval {}".format(mp.output))
 
         node = parse(source) if isinstance(source, str) else source
@@ -317,26 +370,26 @@ class MidiEvaluator():
         if node.expr_name not in ('', 'ws', None):
             print("Evaluated {}, '{}'".format(node.expr_name, node.text))
             print("output={}".format(self.output))
+            print("subbeat_lengths={}".format(self.subbeat_lengths))
             if verbosity > 1:
                 print('state={}'.format(self.processing_state))
 
-    def transpose_output(self, semitones):
-        """
-        Return output transposed by semitones (+/-).
-        """
-        new_output = []
-        for note in self.output:
-            pitch = note[0]
-            if pitch is not None:
-                notelist = list(note)
-                notelist[0] = pitch + semitones
-                new_output.append(tuple(notelist))
-            else:
-                ## Keep rests unchanged (pitch == None)
-                new_output.append(note)
-        return new_output
+    #def score(self, node, children):
+    #    """
+    #    Gather outputs for all parts.
+    #    """
+    #    #if len(self.partstates) == 1:
+    #    #    ## Unnested output
+    #    #    d = self.partstates[0]
+    #    #    for t in d['output']:
+    #    #        self.output.append(t)
+    #    #else:
+    #    #    for _, d in self.partstates.items():
+    #    #        self.output.append(tuple(d['output']))
+    #    for _, d in self.partstates.items():
+    #        self.output.append(tuple(d['output']))
 
-    def music(self, node, children):
+    def score(self, node, children):
         """
         Add the last note or chord to the list,
         Then convert output list items to tuples.
@@ -344,29 +397,30 @@ class MidiEvaluator():
             (pitch, start, end)
         otherwise
             (pitch, start, end, velocity)
+
+        Finally, gather outputs for all parts.
         """
-        state = self.processing_state
+        for _, state in self.partstates.items():
+            ## Add the last note or chord to the list,
+            for note in state['notes']:
+                state['output'].append(note)
 
-        ## Add the last note or chord to the list,
-        for note in state['notes']:
-            self.output.append(note)
+            ## sort output by start time
+            state['output'] = sorted(state['output'], key=lambda x: x[1])
 
-        ## sort output by start time
-        self.output = sorted(self.output, key=lambda x: x[1])
+            ## Convert the music output
+            converted = []
+            for item in state['output']:
+                pitch = item[0]
+                start = item[1]
+                end = item[2]
+                velocity = item[3]
+                if self.ignore_velocity:
+                    converted.append((pitch, start, end))
+                else:
+                    converted.append((pitch, start, end, velocity))
 
-        ## Convert the music output
-        converted = []
-        for item in self.output:
-            pitch = item[0]
-            start = item[1]
-            end = item[2]
-            velocity = item[3]
-            if self.ignore_velocity:
-                converted.append((pitch, start, end))
-            else:
-                converted.append((pitch, start, end, velocity))
-
-        self.output = converted
+            state['output'] = converted
 
         ## Convert the metronome output
         converted = []
@@ -383,19 +437,43 @@ class MidiEvaluator():
 
         self.metronome_output = converted
 
+        ## Gather outputs from all parts
+        for _, d in self.partstates.items():
+            self.output.append(tuple(d['output']))
+
+    def partswitch(self, node, children):
+        """ Switch to new part """
+        newpartnumber = int(node.children[1].text)
+        try:
+            self.processing_state = self.partstates[newpartnumber]
+        except KeyError:
+            ## Doesn't exist yet. Create it.
+            pstate = self.new_part_state(newpartnumber)
+            self.partstates[newpartnumber] = pstate
+            self.processing_state = self.partstates[newpartnumber]
+        self.current_part = newpartnumber
+
     def tempo(self, node, children):
         """ Install a new tempo """
-        state = self.processing_state
-        newtempo = float(node.children[1].text)
-        assert newtempo != 0.0
-        state['basetempo'] = state['tempo'] = newtempo
+        if self.current_part == 0:
+            state = self.processing_state
+            newtempo = float(node.children[1].text)
+            assert newtempo != 0.0
+            state['basetempo'] = state['tempo'] = newtempo
+        else:
+            print(
+                "Ignoring tempo spec in part {}.".format(self.current_part))
 
     def relativetempo(self, node, children):
         """ Adjust the current tempo without altering the base tempo """
-        state = self.processing_state
-        newtempo = float(node.children[1].text)
-        assert newtempo != 0.0
-        state['tempo'] = newtempo * state['basetempo']
+        if self.current_part == 0:
+            state = self.processing_state
+            newtempo = float(node.children[1].text)
+            assert newtempo != 0.0
+            state['tempo'] = newtempo * state['basetempo']
+        else:
+            print(
+                "Ignoring tempo spec in part {}.".format(self.current_part))
 
     def velocity(self, node, children):
         """ Change the current velocity """
@@ -430,7 +508,7 @@ class MidiEvaluator():
             pitchnumber = 77
             velocity *= state['de_emphasis']
         bindex = state['beat_index']
-        start = self.subbeat_starts[bindex][0]
+        start = state['subbeat_starts'][bindex][0]
         end = start + self.beat_lengths[bindex]
         self.metronome_output.append([pitchnumber, start, end, velocity])
 
@@ -449,7 +527,7 @@ class MidiEvaluator():
         if state['prior_chord_tone_count'] == 0:
             for note in state['notes']:
                 if len(note) > 1:
-                    self.output.append(note)
+                    state['output'].append(note)
 
             state['notes'] = []
 
@@ -464,7 +542,7 @@ class MidiEvaluator():
         state = self.processing_state
         for note in state['notes']:
             if len(note) > 1:
-                self.output.append(note)
+                state['output'].append(note)
 
         state['notes'] = []
 
@@ -480,7 +558,7 @@ class MidiEvaluator():
         state = self.processing_state
         for note in state['notes']:
             if len(note) > 1:
-                self.output.append(note)
+                state['output'].append(note)
 
         state['notes'] = []
 
@@ -498,7 +576,7 @@ class MidiEvaluator():
             ## to the full subbeat duration.
             count = state['chord_tone_count']
             index = state['beat_index']
-            subduration = self.subbeat_lengths[index]
+            subduration = state['subbeat_lengths'][index]
             subsub_duration = subduration/count
             offset = 0
             for i in range(1, count):
@@ -515,7 +593,7 @@ class MidiEvaluator():
             ## to the full subbeat duration.
             count = state['chord_tone_count']
             index = state['beat_index']
-            subduration = self.subbeat_lengths[index]
+            subduration = state['subbeat_lengths'][index]
             subsub_duration = subduration/count
             offset = 0
             for i in range(count):
@@ -525,7 +603,7 @@ class MidiEvaluator():
             ## Ornament tones (other than the last) do not sustain,
             ## so flush all but the last to the output list
             for i in range(-count, -1):
-                self.output.append(state['notes'][i])
+                state['output'].append(state['notes'][i])
             ## Keep on the last in the extendable note list
             state['notes'] = [state['notes'][-1]]
 
@@ -601,13 +679,13 @@ class MidiEvaluator():
         """
         state = self.processing_state
         index = state['beat_index']
-        duration = self.subbeat_lengths[index]
-        start = self.subbeat_starts[index][state['subbeats']]
+        duration = state['subbeat_lengths'][index]
+        start = state['subbeat_starts'][index][state['subbeats']]
         if not state['in_chord']:
             for note in state['notes']:
                 if len(note) > 1:
                     note[2] = start ## which is the end :-)
-                    self.output.append(note)
+                    state['output'].append(note)
 
         end = start + duration
         if not state['in_chord']:
@@ -666,13 +744,14 @@ class MidiEvaluator():
         """
         state = self.processing_state
         index = state['beat_index']
-        duration = self.subbeat_lengths[index]
-        start = self.subbeat_starts[index][state['subbeats']]
+        duration = state['subbeat_lengths'][index]
+        #start = state['subbeat_starts'][part][index][state['subbeats']]
+        start = state['subbeat_starts'][index][state['subbeats']]
         if not state['in_chord']:
             for note in state['notes']:
                 if len(note) > 1:
                     note[2] = start ## which is the end :-)
-                    self.output.append(note)
+                    state['output'].append(note)
 
         end = start + duration
         pitchnumber, velocity = state['pending_note']
@@ -692,15 +771,15 @@ class MidiEvaluator():
         """ Deal with chord tones """
         state = self.processing_state
         index = state['beat_index']
-        duration = self.subbeat_lengths[index]
+        duration = state['subbeat_lengths'][index]
         pitchnumber, velocity = state['pending_note']
-        start = self.subbeat_starts[index][state['subbeats']]
+        start = state['subbeat_starts'][index][state['subbeats']]
         end = start + duration
         newnote = [pitchnumber, start, end, velocity]
         pchindex = state['prior_chord_next_index']
         try:
             ## Replace if possible, left to right
-            self.output.append(state['notes'][pchindex])
+            state['output'].append(state['notes'][pchindex])
             state['notes'][pchindex] = newnote
             state['prior_chord_next_index'] += 1
         except IndexError:
@@ -713,8 +792,8 @@ class MidiEvaluator():
         """ Extend corresponding pitch in prior chord """
         state = self.processing_state
         index = state['beat_index']
-        duration = self.subbeat_lengths[index]
-        newend = self.subbeat_starts[index][state['subbeats']] + duration
+        duration = state['subbeat_lengths'][index]
+        newend = state['subbeat_starts'][index][state['subbeats']] + duration
         if state['in_chord'] in (CHORD,):
             index = state['prior_chord_next_index']
             state['notes'][index][2] = newend
@@ -730,8 +809,8 @@ class MidiEvaluator():
         """
         state = self.processing_state
         index = state['beat_index']
-        duration = self.subbeat_lengths[index]
-        newend = self.subbeat_starts[index][state['subbeats']] + duration
+        duration = state['subbeat_lengths'][index]
+        newend = state['subbeat_starts'][index][state['subbeats']] + duration
         if state['in_chord'] in (CHORD,):
             index = state['chord_tone_count']
             state['notes'][index][2] = newend
@@ -749,15 +828,15 @@ class MidiEvaluator():
         """
         state = self.processing_state
         index = state['beat_index']
-        duration = self.subbeat_lengths[index]
+        duration = state['subbeat_lengths'][index]
         pitchnumber, velocity = None, state['velocity']
-        start = self.subbeat_starts[index][state['subbeats']]
+        start = state['subbeat_starts'][index][state['subbeats']]
         end = start + duration
         newnote = [pitchnumber, start, end, velocity]
         pchindex = state['prior_chord_next_index']
         try:
             ## Replace if possible, left to right
-            self.output.append(state['notes'][pchindex])
+            state['output'].append(state['notes'][pchindex])
             state['notes'][pchindex] = newnote
             state['prior_chord_next_index'] += 1
             print("Replaced with rest.")
@@ -858,7 +937,7 @@ class MidiEvaluator():
         list. Return the number of notes moved (1 or 0)
         """
         try:
-            self.output.append(state['notes'].pop(index))
+            state['output'].append(state['notes'].pop(index))
             if replacement is not None:
                 state['notes'].insert(index, replacement)
             return 1

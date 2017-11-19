@@ -1,0 +1,6 @@
+/* Last 4 bars of Deck The Hall (SATB)  */
+
+P=0 K=F  ^c -b a g | f g a f |  ^dd dd c  -b  | a t=0.8 g t=0.5 f   - |
+P=1 K=F  ^a -g f e | d e c c |   ff ff a  -g  | f       e       c   - |
+P=2 K=F   c -c c b | a b a a |   bb bb a  -b  | a       b       a   - |
+P=3 K=F  /f -f f c | d c f f |  /bc de f -/b  | c       c    (/f^f) - |
