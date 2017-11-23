@@ -360,9 +360,8 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
   * __Comments__
     * Tbon supports C-style comments that may span multiple lines.
     * Comments start with `/*` and end with `*/`
-    * Placement: anywhere except inside a bar
-      * `/* ok */ a b c d | /* ok, too. */ e f g a | /* and this is also ok. */`
-      * `T=120 /* Error! */ a b c d | e /* Error! */ f g a |`
+    * Placement: anywhere except inside a beat.
+      * `/* ok */ a b /* ok, too. */ c d | /* ok, too. */ e f g a | /* and this is also ok. */`
     * See examples/comments.tbn
     ```
      /* 
