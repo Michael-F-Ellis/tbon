@@ -335,6 +335,28 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
         D=0.5
         /c d e | f g a | b c d | c - - |
     ```
+  * __Channel__ By default, tbon assigns MIDI channel number 1 to all notes in all parts.  You can explicitly assign different channel numbers.
+    * Syntax: `C=N`
+    * Valid values for N are 1 thru 16, inclusive.
+    * Different parts may have different channel numbers.
+  * __Percussion__
+    * To write percussion, use `C=10` and follow the General MIDI Percussion Keymap.
+      * See [Percussion Keymap](http://computermusicresource.com/GM.Percussion.KeyMap.html)
+    * Example:
+      ```
+      /* Bass drum, snare, ride pattern */
+
+      /* Bass drum GM #36 */
+      D=0.2
+      C=10 (//1^@3)3 (/2^3)3 (/1^3)3  (/2^3)3 |
+
+      (/1^@3)3  (/2^3)3 (/1^3)3  (/2^3)3  |
+
+      (/1^@3)3  (/2^3)3 (/1^3)3  (/2^3)-/22  |
+
+      (1^@3)3   (/2^3)3 (/1^3)(/1^3) (/2^3)3  |
+      ```
+      ![](doc/img/percussion.png)
   * __Comments__
     * Tbon supports C-style comments that may span multiple lines.
     * Comments start with `/*` and end with `*/`
