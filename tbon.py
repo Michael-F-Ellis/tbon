@@ -22,7 +22,6 @@ def evaluate(source, numeric=True):
     return tbon
 
 def make_midi(tbon, outfile,
-              channel=0,
               firstbar=0,
               quiet=False,
               metronome=0):
@@ -97,34 +96,35 @@ def make_midi(tbon, outfile,
                                     denominator=midi_denom,
                                     clocks_per_tick=metro_clocks)
 
-    def add_notes(source, trk, chan):
+    def add_notes(source, trk):
         """ Add all notes in source to trk on chan. """
-        for pitch, start, stop, velocity in source:
+        for pitch, start, stop, velocity, chan in source:
             if pitch is not None:
-                MyMIDI.addNote(trk, chan,
+                MyMIDI.addNote(trk, chan-1,
                                pitch, start,
                                stop - start,
                                int(velocity * 127))
     if metronome == 0:
         for track, notes in enumerate(parts):
-            add_notes(notes, track, channel)
+            add_notes(notes, track)
     elif metronome == 1:
         ## Metronome output only.
-        add_notes(metronotes, track, metronome_channel)
+        add_notes(metronotes, track)
     else:
         ## Both
         for track, notes in enumerate(parts):
-            add_notes(notes, track, channel)
+            add_notes(notes, track)
         metrotrack = numparts ## because 0-indexing
-        add_notes(metronotes, metrotrack, metronome_channel)
+        add_notes(metronotes, metrotrack)
 
     with open(outfile, "wb") as output_file:
         MyMIDI.writeFile(output_file)
 
     if not quiet:
-        print_beat_map(beat_map, first_bar_number=firstbar)
+        for partnum, pmap in beat_map.items():
+            print_beat_map(partnum, pmap, first_bar_number=firstbar)
 
-def print_beat_map(beat_map, first_bar_number=0):
+def print_beat_map(partnum, beat_map, first_bar_number=0):
     """
     Output the beat map in a nice readable display with
     beat counts for 10 bars displayed on each line.
@@ -138,7 +138,7 @@ def print_beat_map(beat_map, first_bar_number=0):
     endmap = False
     remapped = [pad  for _ in range(padcount)] + list(beat_map)
     linecount = 0
-    print("Beat Map: Number of beats in each bar")
+    print("Part {} Beat Map: Number of beats in each bar".format(partnum))
     while True:
         label = "{:4d}:".format(bar_number)
         linelist.append(label)

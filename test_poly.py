@@ -7,19 +7,19 @@ from pytest import approx
 #pylint: disable=len-as-condition, singleton-comparison
 
 def test_partswitch():
-    ## Verify default behaviour with part zero explicit
-    src = 'P=0 (/cegc) |'
+    ## Verify default behaviour with part one explicit
+    src = 'P=1 (/cegc) |'
     pre_evaluate(src, [1.0])
     pre_evaluate(src, [(0.0,)], target='subbeat_starts')
     evaluate(src,
              [((48, 0, 1), (52, 0, 1), (55, 0, 1), (60, 0, 1)),],)
-    src = 'P=0 (/cegc) | P=1 //ce |'
+    src = 'P=1 (/cegc) | P=2 //ce |'
     pre_evaluate(src, [(1.0,), (0.5,)])
     pre_evaluate(src, [(0.0,), ((0.0, 0.5))], target='subbeat_starts')
-    src = 'P=0 (/cegc) | P=1 //ce | P=0 (gbdf) | P=1 //gb |'
+    src = 'P=1 (/cegc) | P=2 //ce | P=1 (gbdf) | P=2 //gb |'
     pre_evaluate(src, [(1.0, 1.0), (0.5, 0.5)])
     #import pdb;pdb.set_trace()
-    evaluate('P=0 c | P=1 //ce |',
+    evaluate('P=1 c | P=2 //ce |',
              [((60, 0, 1.0),), ((36, 0, 0.5), (40, 0.5, 1.0))],)
 
 def pre_evaluate(source, expected, target='subbeat_lengths'):

@@ -1,9 +1,9 @@
 """
 To be run with pytest
 """
-import keysigs
 from parser import (MidiEvaluator, MidiPreEvaluator, time_signature)
 from pytest import approx
+import keysigs
 #pylint: disable=missing-docstring, invalid-name, singleton-comparison
 
 
@@ -61,10 +61,10 @@ def test_keysig_insert():
 def test_beat_map():
     mp = MidiPreEvaluator()
     mp.eval('a b cd | e f - a |')
-    assert mp.beat_map == [3, 4]
+    assert mp.beat_map == {1: [3, 4]}
     m = MidiEvaluator(pitch_order=tuple('abcdefg'), ignore_velocity=True)
     m.eval('a b cd | e f - a |')
-    assert m.beat_map == (3, 4)
+    assert m.beat_map == {1: (3, 4)}
 
 def test_melody():
     """
@@ -259,28 +259,28 @@ def test_key():
 
 def test_velocity():
     evaluate('c d |',
-             [(60, 0.0, 1.0, 0.8), (62.0, 1.0, 2.0, 0.8)],
+             [(60, 0.0, 1.0, 0.8, 1), (62.0, 1.0, 2.0, 0.8, 1)],
              ignore_velocity=False)
     evaluate('c V=0.9 d |',
-             [(60, 0.0, 1.0, 0.8), (62.0, 1.0, 2.0, 0.9)],
+             [(60, 0.0, 1.0, 0.8, 1), (62.0, 1.0, 2.0, 0.9, 1)],
              ignore_velocity=False)
 
 def test_de_emphasis():
     evaluate('D=0.125 c d |',
-             [(60, 0.0, 1.0, 0.8), (62.0, 1.0, 2.0, 0.7)],
+             [(60, 0.0, 1.0, 0.8, 1), (62.0, 1.0, 2.0, 0.7, 1)],
              ignore_velocity=False)
     evaluate('D=0.125 c d | e f |',
-             [(60, 0.0, 1.0, 0.8), (62.0, 1.0, 2.0, 0.7),
-              (64, 2.0, 3.0, 0.8), (65.0, 3.0, 4.0, 0.7)],
+             [(60, 0.0, 1.0, 0.8, 1), (62.0, 1.0, 2.0, 0.7, 1),
+              (64, 2.0, 3.0, 0.8, 1), (65.0, 3.0, 4.0, 0.7, 1)],
              ignore_velocity=False)
     evaluate('D=0.125 (ce) d |',
-             [(60, 0.0, 1.0, 0.8), (64, 0.0, 1.0, 0.8), (62.0, 1.0, 2.0, 0.7)],
+             [(60, 0.0, 1.0, 0.8, 1), (64, 0.0, 1.0, 0.8, 1), (62.0, 1.0, 2.0, 0.7, 1)],
              ignore_velocity=False)
     evaluate('D=0.125 (:ce) d |',
-             [(60, 0.0, 1.0, 0.8), (64, 0.5, 1.0, 0.7), (62.0, 1.0, 2.0, 0.7)],
+             [(60, 0.0, 1.0, 0.8, 1), (64, 0.5, 1.0, 0.7, 1), (62.0, 1.0, 2.0, 0.7, 1)],
              ignore_velocity=False)
     evaluate('D=0.125 (~ce) d |',
-             [(60, 0.0, 0.5, 0.8), (64, 0.5, 1.0, 0.7), (62.0, 1.0, 2.0, 0.7)],
+             [(60, 0.0, 0.5, 0.8, 1), (64, 0.5, 1.0, 0.7, 1), (62.0, 1.0, 2.0, 0.7, 1)],
              ignore_velocity=False)
 
 def test_beatspec():
@@ -290,6 +290,10 @@ def test_beatspec():
 def test_time_signature():
     sig = time_signature('4.', 3, 0.0)
     assert sig == ('M', 0.0, 9, 8)
+
+def test_channel():
+    evaluate('C=16 c |', [(60, 0.0, 1.0, 0.8, 16)],
+             ignore_velocity=False)
 
 def evaluate(source, expected, numeric=False,
              ignore_velocity=True):
@@ -306,15 +310,15 @@ def evaluate(source, expected, numeric=False,
         assert t == approx(expected[i])
 
 def test_metronome():
-    metroevaluate('a b - cd  |', [(76, 0.0, 1.0, 0.8), (77, 1.0, 2.0, 0.8),
-                                  (77, 2.0, 3.0, 0.8), (77, 3.0, 4.0, 0.8)],
+    metroevaluate('a b - cd  |', [(76, 0.0, 1.0, 0.8, 10), (77, 1.0, 2.0, 0.8, 10),
+                                  (77, 2.0, 3.0, 0.8, 10), (77, 3.0, 4.0, 0.8, 10)],
                   ignore_velocity=False)
 
-    metroevaluate('B=4. a b |', [(76, 0.0, 1.5, 0.8), (77, 1.5, 3.0, 0.8)],
+    metroevaluate('B=4. a b |', [(76, 0.0, 1.5, 0.8, 10), (77, 1.5, 3.0, 0.8, 10)],
                   ignore_velocity=False)
 
-    metroevaluate('B=4. D=0.25 a b |', [(76, 0.0, 1.5, 0.8),
-                                        (77, 1.5, 3.0, 0.6)],
+    metroevaluate('B=4. D=0.25 a b |', [(76, 0.0, 1.5, 0.8, 10),
+                                        (77, 1.5, 3.0, 0.6, 10)],
                   ignore_velocity=False)
 
 def metroevaluate(source, expected,

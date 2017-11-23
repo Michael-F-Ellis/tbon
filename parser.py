@@ -10,7 +10,7 @@ Copyright 2017 Ellis & Grant, Inc.
 ## pylint: disable=blacklisted-name
 ## pylint: disable=too-many-public-methods
 ## pylint: disable=too-many-instance-attributes
-## pylint: disable=too-many-statements
+## pylint: disable=too-many-statements, invalid-name
 #######################################################################
 import keysigs
 from parsimonious.grammar import Grammar
@@ -22,11 +22,12 @@ def parse(source):
         """
         score = comment*  music*
         music = (comment / (partswitch*  bar+))+ ws*
-        partswitch = "P=" intnum
+        partswitch = "P=" partnum
         comment = ws* ~r"/\*.*?\*/"s ws*
         bar = (ws* (meta / beat) ws)+ barline
         meta = beatspec / key / tempo /
-               relativetempo / velocity / de_emphasis
+               relativetempo / velocity /
+               de_emphasis / channel
         beatspec = "B=" ("2." / "2" / "4." / "4" / "8." / "8")
         key = "K=" keyname
         keyname = ~r"[a-gA-G](@|#)?"
@@ -34,8 +35,10 @@ def parse(source):
         relativetempo = "t=" floatnum
         velocity = "V=" floatnum
         de_emphasis = "D=" floatnum
-        intnum = ~r"\d+"i
+        channel = "C=" chnum
+        partnum = ~r"[1-9][0-9]*"i
         floatnum = ~r"\d*\.?\d+"i
+        chnum = "16" / "15" / "14" / "13" / "12" / "11" / "10" / ~r"\d"i
         beat = subbeat+
         barline = "|"
         extendable = chord / roll / ornament / pitch / rest
@@ -106,7 +109,7 @@ class MidiPreEvaluator():
         self.first_tempo = 120
         self.output = []
         self.meta_output = []
-        self.beat_map = []
+        self.beat_map = {1: []}
         self.beat_lengths = []
         self.subbeat_starts = []
         self.subbeat_lengths = []
@@ -153,14 +156,16 @@ class MidiPreEvaluator():
     def partswitch(self, node, children):
         """ Switch to new part """
         newpartnumber = int(node.children[1].text)
+        newpindex = newpartnumber - 1
         try:
-            self.processing_state = self.partstates[newpartnumber]
+            self.processing_state = self.partstates[newpindex]
         except KeyError:
             ## Doesn't exist yet. Create it.
             pstate = self.new_part_state()
-            self.partstates[newpartnumber] = pstate
-            self.processing_state = self.partstates[newpartnumber]
-            self.current_part = newpartnumber
+            self.partstates[newpindex] = pstate
+            self.processing_state = self.partstates[newpindex]
+            self.current_part = newpindex
+            self.beat_map[newpartnumber] = []
 
     def new_part_state(self):
         """ Returns a new part state dict """
@@ -260,7 +265,8 @@ class MidiPreEvaluator():
     def barline(self, node, children):
         """ Finish the bar. Add to beat map """
         state = self.processing_state
-        self.beat_map.append(state['bar_beat_count'])
+        partnum = self.current_part + 1
+        self.beat_map[partnum].append(state['bar_beat_count'])
         mult, numer = TIMESIG_LUT[state['beatspec']]
         beat_length = 4 * mult / numer
         bar_index = state['beat_index'] - state['bar_beat_count'] * beat_length
@@ -285,13 +291,54 @@ class MidiPreEvaluator():
 class MidiEvaluator():
     """
     Parses and evaluates a tbon source and produces a time-ordered list of
-    tuples representing midi note events. Each tuple consists of
-      * midi pitch number
-      * start time in seconds
-      * end time in seconds
+    tuples representing midi note events in self.output. Each tuple consists of
+    (pitch, start, end, velocity, channel) where
+      * pitch = midi pitch number
+      * start = start time in quarter-note beats
+      * end = end time in quarter-note beats
+      * velocity = velocity as a number between 0.0 and 1.0,
+      * channel = MIDI channel number 1 through 16 inclusive.
+
     Times are offsets from beginning of the music. Converting the list to
     actual Midi NoteOn and NoteOff events and playing playing them is left up
     to other software.
+
+    The constructor's "ignore_velocity" argument suppresses the inclusion of
+    both velocity and channel number. Its primary purpose is to simplify the
+    creation of test cases where those items are not needed.
+
+    The self.output list is actually a list of tuples of tuples. The extra
+    level is needed to handle compositions in multiple voices, so the actual
+    format is
+    [ ((p,s,e,v,c), ...), ((p,s,e,v,c), ...)),  ... ]
+
+    The top-level tuples are ordered by part number.
+
+    Other outputs:
+    self.meta_output holds Tempo, Key and Time Signature events.
+
+      Tempo: Tuplets of the form ('T', start, bpm) where
+             start = start time of new tempo in quarter-note beats
+             bpm   = new quarter-note tempo in beats per minute
+
+      Key: Tuplets of the form ('K', start, (sf, mode))
+             start = start time of new tempo in quarter-note beats
+             sf = Number of sharps (sf > 0) or flats (sf < 0)
+             mode = 0 if major, 1 if minor
+
+      Time Signature: Tuplets of the form ('M', start, numerator, denominator)
+             start = start time of new tempo in quarter-note beats
+             numerator = denominator notes per measure
+             denominator = one of [2, 4, 8, 16]
+
+    self.metronome_output. Tuples of metronome clicks in part 1, one per beat.
+        * same format as note events (p,s,e,v,c).
+        * channel is always 10,
+        * velocity follows the music
+        * downbeat pitch is high wood block (76)
+        * other beats are low wood block (77)
+
+    self.beat_map: List of number of beats in each measure
     """
     def __init__(self,
                  pitch_order=tuple('cdefgab'),
@@ -332,6 +379,7 @@ class MidiEvaluator():
             keyname="C",
             velocity=0.8,
             de_emphasis=1.0,
+            channel=1,
             output=[],
             )
 
@@ -345,7 +393,7 @@ class MidiEvaluator():
             self.subbeat_starts = mp.subbeat_starts
             self.beat_lengths = mp.beat_lengths
             self.meta_output = mp.meta_output
-            self.beat_map = tuple(mp.beat_map)
+            self.beat_map = {k: tuple(v) for k, v in mp.beat_map.items()}
             ## Update each partstate
             pstates = self.partstates ## shorter name
             for num, state in mp.partstates.items():
@@ -393,10 +441,10 @@ class MidiEvaluator():
         """
         Add the last note or chord to the list,
         Then convert output list items to tuples.
-        If we're ignoring velocity, the tuples are:
+        If we're ignoring velocity (and channel), the tuples are:
             (pitch, start, end)
         otherwise
-            (pitch, start, end, velocity)
+            (pitch, start, end, velocity, channel)
 
         Finally, gather outputs for all parts.
         """
@@ -415,10 +463,12 @@ class MidiEvaluator():
                 start = item[1]
                 end = item[2]
                 velocity = item[3]
+                channel = item[4]
                 if self.ignore_velocity:
                     converted.append((pitch, start, end))
                 else:
-                    converted.append((pitch, start, end, velocity))
+                    converted.append((pitch, start, end,
+                                      velocity, channel))
 
             state['output'] = converted
 
@@ -430,10 +480,11 @@ class MidiEvaluator():
             start = item[1]
             end = item[2]
             velocity = item[3]
+            channel = 10 # MIDI Percussion channel
             if self.ignore_velocity:
                 converted.append((pitch, start, end))
             else:
-                converted.append((pitch, start, end, velocity))
+                converted.append((pitch, start, end, velocity, channel))
 
         self.metronome_output = converted
 
@@ -444,14 +495,15 @@ class MidiEvaluator():
     def partswitch(self, node, children):
         """ Switch to new part """
         newpartnumber = int(node.children[1].text)
+        newpindex = newpartnumber - 1
         try:
-            self.processing_state = self.partstates[newpartnumber]
+            self.processing_state = self.partstates[newpindex]
         except KeyError:
             ## Doesn't exist yet. Create it.
-            pstate = self.new_part_state(newpartnumber)
-            self.partstates[newpartnumber] = pstate
-            self.processing_state = self.partstates[newpartnumber]
-        self.current_part = newpartnumber
+            pstate = self.new_part_state(newpindex)
+            self.partstates[newpindex] = pstate
+            self.processing_state = self.partstates[newpindex]
+        self.current_part = newpindex
 
     def tempo(self, node, children):
         """ Install a new tempo """
@@ -482,6 +534,13 @@ class MidiEvaluator():
         assert 0.0 <= newvelocity <= 1.0
         state['velocity'] = newvelocity
 
+    def channel(self, node, children):
+        """ Change the current channel """
+        state = self.processing_state
+        newchannel = int(node.children[1].text)
+        assert 1 <= newchannel <= 16
+        state['channel'] = newchannel
+
     def de_emphasis(self, node, children):
         """ Change the current de_emphasis """
         state = self.processing_state
@@ -502,6 +561,7 @@ class MidiEvaluator():
 
         ## Metronome
         velocity = state['velocity']
+        channel = 10
         if state['bar_beat_index'] == 0:
             pitchnumber = 76
         else:
@@ -510,7 +570,8 @@ class MidiEvaluator():
         bindex = state['beat_index']
         start = state['subbeat_starts'][bindex][0]
         end = start + self.beat_lengths[bindex]
-        self.metronome_output.append([pitchnumber, start, end, velocity])
+        self.metronome_output.append([pitchnumber, start, end,
+                                      velocity, channel])
 
         ## Update indices
         state['subbeats'] = 0
@@ -696,6 +757,7 @@ class MidiEvaluator():
             state['prior_chord_tone_count'] = 0
         state['notes'].append([None, start, end,
                                state['velocity'],
+                               state['channel'],
                               ])
 
     def pitchname(self, node, children):
@@ -736,7 +798,9 @@ class MidiEvaluator():
 
         state['alteration'] = 0
         state['pitchname'] = pitchname
-        state['pending_note'] = (pitchnumber, velocity)
+        channel = state['channel']
+        state['pending_note'] = (pitchnumber,
+                                 velocity, channel)
 
     def pitch(self, node, children):
         """
@@ -754,17 +818,19 @@ class MidiEvaluator():
                     state['output'].append(note)
 
         end = start + duration
-        pitchnumber, velocity = state['pending_note']
+        pitchnumber, velocity, channel = state['pending_note']
         if not state['in_chord']:
             state['notes'] = []
             state['subbeats'] += 1
             state['bar_subbeats'] += 1
-            state['notes'].append([pitchnumber, start, end, velocity])
+            state['notes'].append([pitchnumber, start, end,
+                                   velocity, channel])
             state['chord_tone_count'] = 0
             state['prior_chord_tone_count'] = 1
         elif state['in_chord'] in (ROLL, ORNAMENT):
             ## Rolls and Ornaments
-            state['notes'].append([pitchnumber, start, end, velocity])
+            state['notes'].append([pitchnumber, start, end,
+                                   velocity, channel])
             state['chord_tone_count'] += 1
 
     def chordpitch(self, node, children):
@@ -772,10 +838,11 @@ class MidiEvaluator():
         state = self.processing_state
         index = state['beat_index']
         duration = state['subbeat_lengths'][index]
-        pitchnumber, velocity = state['pending_note']
+        pitchnumber, velocity, channel = state['pending_note']
         start = state['subbeat_starts'][index][state['subbeats']]
         end = start + duration
-        newnote = [pitchnumber, start, end, velocity]
+        newnote = [pitchnumber, start, end,
+                   velocity, channel]
         pchindex = state['prior_chord_next_index']
         try:
             ## Replace if possible, left to right
@@ -829,10 +896,13 @@ class MidiEvaluator():
         state = self.processing_state
         index = state['beat_index']
         duration = state['subbeat_lengths'][index]
-        pitchnumber, velocity = None, state['velocity']
+        pitchnumber, velocity, channel = (None,
+                                          state['velocity'],
+                                          state['channel'])
         start = state['subbeat_starts'][index][state['subbeats']]
         end = start + duration
-        newnote = [pitchnumber, start, end, velocity]
+        newnote = [pitchnumber, start, end,
+                   velocity, channel]
         pchindex = state['prior_chord_next_index']
         try:
             ## Replace if possible, left to right
