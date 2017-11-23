@@ -258,16 +258,16 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
   * Example:
     ```
     /* Last 4 bars of Deck The Hall (SATB)  */
-    P=0 K=F  ^c -b a g | f g a f |  ^dd dd c  -b  | a t=0.8 g t=0.5 f   - |
-    P=1 K=F  ^a -g f e | d e c c |   ff ff a  -g  | f       e       c   - |
-    P=2 K=F   c -c c b | a b a a |   bb bb a  -b  | a       b       a   - |
-    P=3 K=F  /f -f f c | d c f f |  /bc de f -/b  | c       c    (/f^f) - |
+    P=1 K=F  ^c -b a g | f g a f |  ^dd dd c  -b  | a t=0.8 g t=0.5 f   - |
+    P=2 K=F  ^a -g f e | d e c c |   ff ff a  -g  | f       e       c   - |
+    P=3 K=F   c -c c b | a b a a |   bb bb a  -b  | a       b       a   - |
+    P=4 K=F  /f -f f c | d c f f |  /bc de f -/b  | c       c    (/f^f) - |
     ```
     ![](doc/img/deckthehall.png)
     
     * You may use as many voices as needed.
-    * The voices must have contiguous numbers starting at 0.
-    * Voice 0 is special. Tempo changes must be given there. Tempo changes in other voices are ignored.
+    * The voices must have contiguous numbers starting at 1.
+    * Voice 1 is special. Tempo changes must be given there. Tempo changes in other voices are ignored.
     * The following must be supplied per voice:
       * Key Signature
       * Beat Note
