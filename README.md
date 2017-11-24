@@ -129,7 +129,9 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
       - Double sharp and double flat are `##` and `@@` respectively.
       - Accidentals come __before__ the pitch, i.e. `#f` not `f#`.
       - Accidentals persist until the end of the measure (standard music convention)
-      - Unicode symbols are supported but most keyboard layouts don't include them in any convenient way.
+      - You may also use Unicode music symbols to improve readability.
+        - Unfortunately most keyboard layouts don't include them in any convenient way.
+        - Some mobile browsers may not render them correctly.
         - Example:
           ```
           /* Unicode accidental support. */
