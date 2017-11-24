@@ -310,8 +310,9 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
         V=0.8 54 32 1 - | V=0.5 ^54 32 1 - |
         ```
   * __De-emphasis__
+    controls the amount of emphasis given to the downbeat. It's specified as the amount of de-emphasis applied to the other beats in the measure to make the math cleaner.
     * Syntax `D=N` where N is between 0.0 and 1.0 inclusive.
-    * Default is D=0.0 (no de-emphasis, all notes equal velocity).
+    * Default is `D=0.0` (no de-emphasis, all notes equal velocity).
     * Velocities of notes that aren't on the downbeat are scaled by (1.0 - N).
     * Placement: At the start of any measure before the first beat of the measure.
     * Affects all following notes until changed.
@@ -342,11 +343,12 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
   * __Percussion__
     * To write percussion, use `C=10` and follow the General MIDI Percussion Keymap.
       * See [Percussion Keymap](http://computermusicresource.com/GM.Percussion.KeyMap.html)
+      * Tbon doesn't do anything special for percussion. It relies on your synthesizer to apply the standard interpretation to note events on channel 10.
     * Example:
       ```
       /* Bass drum, snare, ride pattern */
 
-      /* Bass drum GM #36 */
+      /* Bass drum GM #36, snare #38, ride #51 */
       D=0.2
       C=10 (//1^@3)3 (/2^3)3 (/1^3)3  (/2^3)3 |
 
