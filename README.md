@@ -154,17 +154,19 @@ Sharps,flats and naturals are '#', '@' and '%' respectively.
 #### Octave marks
 
 Pitches move up or down using the Lilypond relative pitch entry convention.
-      * By default, the pitch of each note is placed above or below its predecessor based on which interval is smaller.
-          * Thus, `c g` will put the g below the c since the 4th below is smaller than the 5th above.
-          * To select the more distant upper pitch, you'd write `c ^g`
-          * Similarly you'd write 'c /d' to put choose the d a 7th below the c.
-          * Use multiple octave marks to move by more than 1 octave, e.g. `\\c` or `^^c` to move down or up by 2 octaves.
-          * The first pitch in a melody is relative to Middle C (midi #60). 
-          * Example:
-            ```
-            c g c ^g | c /d d c |
-            ```
-            ![](doc/img/octaves.png)
+
+  * By default, the pitch of each note is placed above or below its predecessor based on which interval is smaller.
+    * Thus, `c g` will put the g below the c since the 4th below is smaller than the 5th above.
+    * To select the more distant upper pitch, you'd write `c ^g`
+    * Similarly you'd write 'c /d' to put choose the d a 7th below the c.
+    * Use multiple octave marks to move by more than 1 octave, e.g. `\\c` or `^^c` to move down or up by 2 octaves.
+    * The first pitch in a melody is relative to Middle C (midi #60). 
+    * Example:
+      ```
+      c g c ^g | c /d d c |
+      ```
+      ![](doc/img/octaves.png)
+      
  #### Beat Note
     * Syntax: `B=N` where N is one of `2. 2 4. 4 8. 8`
       * `2.` = dotted half-note beat
