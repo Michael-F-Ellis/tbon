@@ -153,17 +153,18 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
             ```
             ![](doc/img/octaves.png)
   * __Beat Note__
-    * Syntax: `B=N` where N is one of `2 4. 4 8`
-      * `2` means half-note beat
-      * `4.` means dotted quarter note beat (need for compound meters like 6/8)
-      * `4` means quarter note beat
-      * `8` means eighth-note beat
-    * Not required to produce midi files with correct note durations.
-    * Useful for generating correct time signatures in the midi output file.
+    * Syntax: `B=N` where N is one of `2. 2 4. 4 8. 8`
+      * `2.` = dotted half-note beat
+      * `2` = half-note beat
+      * `4.` = dotted quarter note beat
+      * `4` = quarter note beat
+      * `8.` = dotted eighth-note beat
+      * `8` = eighth-note beat
+    * Used to generate correct time signatures in the midi output file.
       * Time signatures are produced by counting the number of beats in each bar in conjunction with the most recent beat note.
     * Example: See examples/meter.tba
       ```
-      /* Changing meter and tempo. Constant quarter-note duration. */
+      /* Changing meter. Constant quarter-note duration. */
       /* 4/4  */
       T=120
       B=4 c d e f |
