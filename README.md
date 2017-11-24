@@ -65,13 +65,15 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
 
 
 ### Basic notation
-  * __Beats__ are groups of pitches, rests and holds followed by whitespace. 
+#### Beats 
+are groups of pitches, rests and holds followed by whitespace. 
     * The measure below has two beats.
         ```
         ab-c de |
         ```
         ![Two Beats](doc/img/twobeats.png)
-  * The __meter__ is determined by the number of beats between barlines ('|')
+#### Meter
+is determined by the number of beats between barlines ('|')
       * You may freely change meters by putting more or fewer beats within a bar.
          ```
          /* The first measure below has 4 beats, the second has 3. */
@@ -79,11 +81,16 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
          ```
         ![Meter Change](doc/img/meterchange.png)
         
-  * __Pitch names__ are represented by a b c d e f g (alternatively by 1 2 3 4 5 6 7).
+#### Pitch names
+are represented by `a b c d e f g`. 
+    * Tbon also supports movable pitches `1 2 3 4 5 6 7`.
+      * `1` corresponds to the tonic of the current key. 
   
-  * __Hyphen__ `-` indicates continuation within and across beats (i.e. a tie).
+#### Hyphen  `-` 
+indicates continuation within and across beats (i.e. a tie).
 
-  * __Rests__ are indicated by letter `z` or underscore `_`.
+#### Rests
+are indicated by letter `z` or underscore `_`.
     * Notice that rests are also extended by hyphens
       ```
       cz - cz | -c - z |
@@ -91,7 +98,8 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
       ![Rests](doc/img/rests.png)
   
   
-  * __Note durations__: tbon can represent *any* rhythm that can be represented in conventional music notation.
+#### Note durations 
+tbon can represent *any* rhythm that can be represented in conventional music notation.
      ```
      a b c d | e f e d |
      ```
@@ -125,7 +133,8 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
      
     * See also (examples/rhythms.tba)
 
-  * __Accidentals__ : Sharps,flats and naturals are '#', '@' and '%' respectively.
+#### Accidentals
+Sharps,flats and naturals are '#', '@' and '%' respectively.
       - Double sharp and double flat are `##` and `@@` respectively.
       - Accidentals come __before__ the pitch, i.e. `#f` not `f#`.
       - Accidentals persist until the end of the measure (standard music convention)
@@ -142,7 +151,9 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
           ![](doc/img/unicode_accidentals.png)
       
       
-  * __Octave marks__: Pitches move up or down using the Lilypond relative pitch entry convention.
+#### Octave marks
+
+Pitches move up or down using the Lilypond relative pitch entry convention.
       * By default, the pitch of each note is placed above or below its predecessor based on which interval is smaller.
           * Thus, `c g` will put the g below the c since the 4th below is smaller than the 5th above.
           * To select the more distant upper pitch, you'd write `c ^g`
@@ -154,7 +165,7 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
             c g c ^g | c /d d c |
             ```
             ![](doc/img/octaves.png)
-  * __Beat Note__
+ #### Beat Note
     * Syntax: `B=N` where N is one of `2. 2 4. 4 8. 8`
       * `2.` = dotted half-note beat
       * `2` = half-note beat
@@ -191,7 +202,7 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
   Using only the notation above, you can quickly write any single voice melody no matter how complex the rhythm. That's quite a lot for only a handful of symbols. The resultant midi file will have a C-major key signature, the tempo will be fixed at 120 bpm, and the midi file will interpret the beat duration as quarter notes. To move beyond those restrictions, continue reading.
     
 
-  * __Chords__
+#### Chords
     * Pitches inside `( )` are sounded simultaneously and sustained.
     * Duration works the same as for individual notes.
     * Melody direction rules apply to pitches in the order specified as though the parentheses did not exist. This also applies to Rolls and Ornaments (see below).
@@ -214,7 +225,7 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
       /c(^ce)(ce)  //g-(^ce)(bd)(ce)- t=0.9 //gab (c^gce) |
       ```
       ![](doc/img/oompah.png)
-  * __Polyphony__
+#### Polyphony
   
     In the chord examples above, all the notes in each chord end when the next chord or note begins. But sometimes, we want to sustain notes into the the next chord.  In tbon, this is accomplished with the 'hold' symbol '-'.  Within a chord, the hold symbol means 'sustain the corresponding note from the previous chord'.
     * Example 1
@@ -241,9 +252,9 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
       ```
       ![](doc/img/chord_rest.png)
     
-  * __Rolls__
+#### Rolls
     * Pitches inside `(: )` are attacked in sequence over the duration of 1 sub-beat and sustained afterwards in the same manner as chords.
-  * __Ornaments__
+#### Ornaments
     * Pitches inside `(~ )` are attacked in sequence over the  duration of 1 sub-beat. 
     * Each pitch save the last ends when its successor begins.
     * The last pitch may be sustained by hyphens following the ornament.
@@ -255,7 +266,7 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
       6 7 (~171717)6 (572)(~1767) | 15 35 (//1^1351) - |
       ```
       ![Ornaments](doc/img/ornaments.png)
-  * __Multiple Voices__
+#### Multiple Voices
   
     Use the *partswitch*, `P=n` to write music in multiple parts.
   * Example:
@@ -280,7 +291,7 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
     * All voices start at time 0. If you want a voice to be silent at the beginning, you must supply measures of rest.
     * Divisi are supported within voices. See the last bar of the bass line in the example and the Polyphony section, above.
     
-  * __Tempo__
+#### Tempo
     * Tbon supports two kinds of tempo markers, absolute and relative.
     * Either may appear anywhere except within a beat.
     * Absolute tempo is specified like this in beats per minute:  `T=100`
@@ -290,7 +301,7 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
     * `T=100 a b t=0.9 c d | t=1.0 e f g a |` means "Play the first two notes at 100 bpm, the next two at 90 bpm and the remainder at 100 bpm.
     * Relative tempi are multiplied by the current absolute tempo and the result is rounded to the nearest integer.
   
-  * __Key Signatures__
+#### Key Signatures
     * All common major and minor key signatures are recognized. Use lower case for minor, upper for major.
     * Example: `K=b` for B minor, `K=E@` for E-flat major.
     * Majors: `C G D A  E  B  C@ F# G@ C# D@ A@ E@ B@ F`
@@ -301,7 +312,7 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
       * In minor keys the 3rd, 6th, and 7th degrees are flatted.
       * Example: `K=f 12 34 56 71 |` produces the natural minor scale starting on F.
   
-  * __Velocity (Loudness)__
+#### Velocity (Loudness)
     * Specify with `V=` anywhere between (but not within) beats.
     * Default is V=0.8 which corresponds to midi velocity 101 for all notes.
     * Allowed values are between 0.0 (silence) and 1.0 (maximum, midi 127).
@@ -312,7 +323,7 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
         V=0.8 12 34 5 - | V=0.5 /12 34 5 - |
         V=0.8 54 32 1 - | V=0.5 ^54 32 1 - |
         ```
-  * __De-emphasis__
+#### De-emphasis
     controls the amount of emphasis given to the downbeat. It's specified as the amount of de-emphasis applied to the other beats in the measure to make the math cleaner.
     * Syntax `D=N` where N is between 0.0 and 1.0 inclusive.
     * Default is `D=0.0` (no de-emphasis, all notes equal velocity).
@@ -339,11 +350,13 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
         D=0.5
         /c d e | f g a | b c d | c - - |
     ```
-  * __Channel__ By default, tbon assigns MIDI channel number 1 to all notes in all parts.  You can explicitly assign different channel numbers.
+#### Channel
+
+By default, tbon assigns MIDI channel number 1 to all notes in all parts.  You can explicitly assign different channel numbers.
     * Syntax: `C=N`
     * Valid values for N are 1 thru 16, inclusive.
     * Different parts may have different channel numbers.
-  * __Percussion__
+#### Percussion
     * To write percussion, use `C=10` and follow the General MIDI Percussion Keymap.
       * See [Percussion Keymap](http://computermusicresource.com/GM.Percussion.KeyMap.html)
       * Tbon doesn't do anything special for percussion. It relies on your synthesizer to apply the standard interpretation to note events on channel 10.
@@ -362,7 +375,7 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
       (1^@3)3   (/2^3)3 (/1^3)(/1^3) (/2^3)3  |
       ```
       ![](doc/img/percussion.png)
-  * __Comments__
+#### Comments
     * Tbon supports C-style comments that may span multiple lines.
     * Comments start with `/*` and end with `*/`
     * Placement: anywhere except inside a beat.
