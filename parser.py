@@ -11,6 +11,7 @@ Copyright 2017 Ellis & Grant, Inc.
 ## pylint: disable=too-many-public-methods
 ## pylint: disable=too-many-instance-attributes
 ## pylint: disable=too-many-statements, invalid-name
+## pylint: disable=too-many-lines
 #######################################################################
 import keysigs
 from parsimonious.grammar import Grammar
@@ -20,11 +21,12 @@ def parse(source):
     """Parse tbon Source"""
     grammar = Grammar(
         """
-        score = comment*  music*
-        music = (comment / (partswitch*  bar+))+ ws*
+        score = wsc* music*
+        music = (partswitch*  bar+)+ wsc*
         partswitch = "P=" partnum
+        wsc = comment / ws+
         comment = ws* ~r"/\*.*?\*/"s ws*
-        bar = (ws* (meta / beat) ws)+ barline
+        bar = (wsc* (meta / beat) wsc+)+ barline
         meta = beatspec / key / tempo /
                relativetempo / velocity /
                de_emphasis / channel
@@ -421,21 +423,6 @@ class MidiEvaluator():
             print("subbeat_lengths={}".format(self.subbeat_lengths))
             if verbosity > 1:
                 print('state={}'.format(self.processing_state))
-
-    #def score(self, node, children):
-    #    """
-    #    Gather outputs for all parts.
-    #    """
-    #    #if len(self.partstates) == 1:
-    #    #    ## Unnested output
-    #    #    d = self.partstates[0]
-    #    #    for t in d['output']:
-    #    #        self.output.append(t)
-    #    #else:
-    #    #    for _, d in self.partstates.items():
-    #    #        self.output.append(tuple(d['output']))
-    #    for _, d in self.partstates.items():
-    #        self.output.append(tuple(d['output']))
 
     def score(self, node, children):
         """

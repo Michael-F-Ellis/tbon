@@ -181,6 +181,7 @@ def test_ornament():
 def test_comment():
     evaluate('/* This is a comment! */', [])
     evaluate('/* This is a comment! */ c | ', [(60, 0.0, 1.0)])
+    evaluate('P=1 /*  */ B=4 /* */ c /* */ | ', [(60, 0.0, 1.0)])
     evaluate('/* This is a comment! */ c | /* and another */', [(60, 0.0, 1.0)])
 
 def test_numbers_as_pitches():
