@@ -160,7 +160,7 @@ Pitches move up or down using the Lilypond relative pitch entry convention.
   * By default, the pitch of each note is placed above or below its predecessor based on which interval is smaller.
     * Thus, `c g` will put the g below the c since the 4th below is smaller than the 5th above.
     * To select the more distant upper pitch, you'd write `c ^g`
-    * Similarly you'd write 'c /d' to put choose the d a 7th below the c.
+    * Similarly you'd write `c /d` to put choose the d a 7th below the c.
     * Use multiple octave marks to move by more than 1 octave, e.g. `\\c` or `^^c` to move down or up by 2 octaves.
     * The first pitch in a melody is relative to Middle C (midi #60). 
     * Example:
@@ -169,16 +169,17 @@ Pitches move up or down using the Lilypond relative pitch entry convention.
       ```
       ![](doc/img/octaves.png)
       
- #### Beat Note
-    * Syntax: `B=N` where N is one of `2. 2 4. 4 8. 8`
-      * `2.` = dotted half-note beat
-      * `2` = half-note beat
-      * `4.` = dotted quarter note beat
-      * `4` = quarter note beat
-      * `8.` = dotted eighth-note beat
-      * `8` = eighth-note beat
+#### Beat Note
+
+  * Syntax: `B=N` where N is one of
+    * `2.` = dotted half-note beat
+    * `2` = half-note beat
+    * `4.` = dotted quarter note beat
+    * `4` = quarter note beat
+    * `8.` = dotted eighth-note beat
+    * `8` = eighth-note beat
     * Used to generate correct time signatures in the midi output file.
-      * Time signatures are produced by counting the number of beats in each bar in conjunction with the most recent beat note.
+    * Time signatures are produced by counting the number of beats in each bar in conjunction with the most recent beat note.
     * Example: See examples/meter.tba
       ```
       /* Changing meter. Constant quarter-note duration. */
@@ -198,18 +199,21 @@ Pitches move up or down using the Lilypond relative pitch entry convention.
       /* 2/4 */
       B=4 c c |
       ```
-      ![Meter](doc/img/meter.png)
+      
+      ![](doc/img/meter.png)
+      
     * Changing the beat note does not change tempo.
       * The adjustment follows common practice in printed music, namely that changing meter numerator without an explicit tempo change retains the durations of printed notes before and after the change.  If you want a different tempo, you must explicitly change it.
       
-  ### Extended Notation
+### Extended Notation
   Using only the notation above, you can quickly write any single voice melody no matter how complex the rhythm. That's quite a lot for only a handful of symbols. The resultant midi file will have a C-major key signature, the tempo will be fixed at 120 bpm, and the midi file will interpret the beat duration as quarter notes. To move beyond those restrictions, continue reading.
     
 
 #### Chords
-    * Pitches inside `( )` are sounded simultaneously and sustained.
-    * Duration works the same as for individual notes.
-    * Melody direction rules apply to pitches in the order specified as though the parentheses did not exist. This also applies to Rolls and Ornaments (see below).
+
+  * Pitches inside `( )` are sounded simultaneously and sustained.
+  * Duration works the same as for individual notes.
+  * Melody direction rules apply to pitches in the order specified as though the parentheses did not exist. This also applies to Rolls and Ornaments (see below).
     * Example 1
       ```
       /* God Save the Queen */
@@ -229,6 +233,7 @@ Pitches move up or down using the Lilypond relative pitch entry convention.
       /c(^ce)(ce)  //g-(^ce)(bd)(ce)- t=0.9 //gab (c^gce) |
       ```
       ![](doc/img/oompah.png)
+      
 #### Polyphony
   
     In the chord examples above, all the notes in each chord end when the next chord or note begins. But sometimes, we want to sustain notes into the the next chord.  In tbon, this is accomplished with the 'hold' symbol '-'.  Within a chord, the hold symbol means 'sustain the corresponding note from the previous chord'.
