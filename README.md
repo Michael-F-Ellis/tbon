@@ -100,6 +100,7 @@ are indicated by letter `z` or underscore `_`.
   
 #### Note durations 
 tbon can represent *any* rhythm that can be represented in conventional music notation.
+  * A few examples
      ```
      a b c d | e f e d |
      ```
