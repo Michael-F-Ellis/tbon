@@ -53,7 +53,7 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
 
   *Except where otherwise noted, musical images in this document were created by importing tbon midi files directly into  MuseScore 2.1 without further editing.* 
 
-  * Here's the chorus of Leonard Bernstein's *America* theme from West Side Story. I've shown it with numerical pitches just to illustrate how tbon supports those. More importantly, notice how easily tbon represents Bernstein's shifts between 6/8 and 3/4 time on alternate bars 
+  * Here's the chorus of Leonard Bernstein's *America* theme from West Side Story. I've shown it with numerical pitches just to illustrate how tbon supports those. More importantly, notice how easily tbon represents Bernstein's shifts between 6/8 and 3/4 time on alternate bars
 
 
     ```
@@ -80,13 +80,13 @@ is determined by the number of beats between barlines ('|')
          a bc d ef | g - - |
          ```
         ![Meter Change](doc/img/meterchange.png)
-        
+
 #### Pitch names
 are represented by `a b c d e f g`. 
     * Tbon also supports movable pitches `1 2 3 4 5 6 7`.
       * `1` corresponds to the tonic of the current key. 
-  
-#### Hyphen  `-` 
+
+#### Hyphen  `-`
 indicates continuation within and across beats (i.e. a tie).
 
 #### Rests
@@ -96,8 +96,8 @@ are indicated by letter `z` or underscore `_`.
       cz - cz | -c - z |
       ```
       ![Rests](doc/img/rests.png)
-  
-  
+
+
 #### Note durations 
 tbon can represent *any* rhythm that can be represented in conventional music notation.
   * A few examples
@@ -105,33 +105,33 @@ tbon can represent *any* rhythm that can be represented in conventional music no
      a b c d | e f e d |
      ```
      ![](doc/img/quarters.png)
-     
+
      ----
      ```
      a -b c d |
      ```
      ![](doc/img/dotted_q.png)
-     
+
      ----
      ```
      ab c d - |
      ```
      ![](doc/img/eighth_q_h.png)
-     
+
      ----
      ```
      a - b - | - - c - |
      ```
      ![](doc/img/tie.png)
-     
+
      ----
      ```
      abc c--d e f |
      ```
      ![](doc/img/mix.png)
-     
+
      ----
-     
+
     * See also (examples/rhythms.tba)
 
 #### Accidentals
@@ -143,7 +143,7 @@ Sharps,flats and naturals are '#', '@' and '%' respectively.
     * Unfortunately most keyboard layouts don't include them in any convenient way.
     * Some mobile browsers may not render them correctly.
     * Example:
-          
+
       ```
       /* Unicode accidental support. */
       c♭c 𝄫c♭c ♮c♯c 𝄪c♯c | c - - - |
@@ -151,8 +151,8 @@ Sharps,flats and naturals are '#', '@' and '%' respectively.
       c@c @@c@c %c#c ##c#c | c - - - |
       ```
       ![](doc/img/unicode_accidentals.png)
-      
-      
+
+
 #### Octave marks
 
 Pitches move up or down using the Lilypond relative pitch entry convention.
@@ -168,7 +168,7 @@ Pitches move up or down using the Lilypond relative pitch entry convention.
       c g c ^g | c /d d c |
       ```
       ![](doc/img/octaves.png)
-      
+
 #### Beat Note
 
   * Syntax: `B=N` where N is one of
@@ -199,15 +199,15 @@ Pitches move up or down using the Lilypond relative pitch entry convention.
       /* 2/4 */
       B=4 c c |
       ```
-      
+
       ![](doc/img/meter.png)
-      
+
     * Changing the beat note does not change tempo.
       * The adjustment follows common practice in printed music, namely that changing meter numerator without an explicit tempo change retains the durations of printed notes before and after the change.  If you want a different tempo, you must explicitly change it.
-      
+
 ### Extended Notation
   Using only the notation above, you can quickly write any single voice melody no matter how complex the rhythm. That's quite a lot for only a handful of symbols. The resultant midi file will have a C-major key signature, the tempo will be fixed at 120 bpm, and the midi file will interpret the beat duration as quarter notes. To move beyond those restrictions, continue reading.
-    
+
 
 #### Chords
 
@@ -233,9 +233,9 @@ Pitches move up or down using the Lilypond relative pitch entry convention.
       /c(^ce)(ce)  //g-(^ce)(bd)(ce)- t=0.9 //gab (c^gce) |
       ```
       ![](doc/img/oompah.png)
-      
+
 #### Polyphony
-  
+
     In the chord examples above, all the notes in each chord end when the next chord or note begins. But sometimes, we want to sustain notes into the the next chord.  In tbon, this is accomplished with the 'hold' symbol '-'.  Within a chord, the hold symbol means 'sustain the corresponding note from the previous chord'.
     * Example 1
       ```
@@ -244,7 +244,7 @@ Pitches move up or down using the Lilypond relative pitch entry convention.
       (db)(-a) (c-)(-g) | (fa) - |
       ```
       ![](doc/img/suspension.png)
-    
+
     By adding holds in the 'oompah' example from the preceding section, we can make the bass notes continuous, like so:
     * Example 2
       ```
@@ -260,24 +260,26 @@ Pitches move up or down using the Lilypond relative pitch entry convention.
       (cegc) (z-az) (-f--) | (cegc) - - |
       ```
       ![](doc/img/chord_rest.png)
-    
+
 #### Rolls
-    * Pitches inside `(: )` are attacked in sequence over the duration of 1 sub-beat and sustained afterwards in the same manner as chords.
+  * Pitches inside `(: )` are attacked in sequence over the duration of 1 sub-beat and sustained afterwards in the same manner as chords.
+
 #### Ornaments
-    * Pitches inside `(~ )` are attacked in sequence over the  duration of 1 sub-beat. 
-    * Each pitch save the last ends when its successor begins.
-    * The last pitch may be sustained by hyphens following the ornament.
-    * Example with rolls, chords and ornaments:
-      ```
-      /* Demonstrates chords,rolls and ornaments */
-      T=120
-      z - - (://1^1351) | - 2 (~3432)3 - | 3 4 (~5654)5 - |
-      6 7 (~171717)6 (572)(~1767) | 15 35 (//1^1351) - |
-      ```
-      ![Ornaments](doc/img/ornaments.png)
+  * Pitches inside `(~ )` are attacked in sequence over the  duration of 1 sub-beat. 
+  * Each pitch save the last ends when its successor begins.
+  * The last pitch may be sustained by hyphens following the ornament.
+  * Example with rolls, chords and ornaments:
+    ```
+    /* Demonstrates chords,rolls and ornaments */
+    T=120
+    z - - (://1^1351) | - 2 (~3432)3 - | 3 4 (~5654)5 - |
+    6 7 (~171717)6 (572)(~1767) | 15 35 (//1^1351) - |
+    ```
+    ![Ornaments](doc/img/ornaments.png)
 #### Multiple Voices
-  
+
     Use the *partswitch*, `P=n` to write music in multiple parts.
+
   * Example:
     ```
     /* Last 4 bars of Deck The Hall (SATB)  */
@@ -287,120 +289,121 @@ Pitches move up or down using the Lilypond relative pitch entry convention.
     P=4 K=F  /f -f f c | d c f f |  /bc de f -/b  | c       c    (/f^f) - |
     ```
     ![](doc/img/deckthehall.png)
-    
-    * You may use as many voices as needed.
-    * The voices must have contiguous numbers starting at 1.
-    * Voice 1 is special. Tempo changes must be given there. Tempo changes in other voices are ignored.
-    * The following must be supplied per voice:
-      * Key Signature
-      * Beat Note
-      * Velocity
-      * De-emphasis
-    * You may interleave part segments in different lines as you wish, or write each voice out in it's entirety.
-    * All voices start at time 0. If you want a voice to be silent at the beginning, you must supply measures of rest.
-    * Divisi are supported within voices. See the last bar of the bass line in the example and the Polyphony section, above.
-    
+
+  * You may use as many voices as needed.
+  * The voices must have contiguous numbers starting at 1.
+  * Voice 1 is special. Tempo changes must be given there. Tempo changes in other voices are ignored.
+  * The following must be supplied per voice:
+    * Key Signature
+    * Beat Note
+    * Velocity
+    * De-emphasis
+  * You may interleave part segments in different lines as you wish, or write each voice out in it's entirety.
+  * All voices start at time 0. If you want a voice to be silent at the beginning, you must supply measures of rest.
+  * Divisi are supported within voices. See the last bar of the bass line in the example and the Polyphony section, above.
+
 #### Tempo
-    * Tbon supports two kinds of tempo markers, absolute and relative.
-    * Either may appear anywhere except within a beat.
-    * Absolute tempo is specified like this in beats per minute:  `T=100`
-    * Relative tempo is specified like this: `t=0.9`
-    * Relative tempo is a floating point value greater than 0.
-    * Relative tempo represents a fraction (or multiple) of the most recent absolute tempo.
-    * `T=100 a b t=0.9 c d | t=1.0 e f g a |` means "Play the first two notes at 100 bpm, the next two at 90 bpm and the remainder at 100 bpm.
-    * Relative tempi are multiplied by the current absolute tempo and the result is rounded to the nearest integer.
-  
+  * Tbon supports two kinds of tempo markers, absolute and relative.
+  * Either may appear anywhere except within a beat.
+  * Absolute tempo is specified like this in beats per minute:  `T=100`
+  * Relative tempo is specified like this: `t=0.9`
+  * Relative tempo is a floating point value greater than 0.
+  * Relative tempo represents a fraction (or multiple) of the most recent absolute tempo.
+  * `T=100 a b t=0.9 c d | t=1.0 e f g a |` means "Play the first two notes at 100 bpm, the next two at 90 bpm and the remainder at 100 bpm.
+  * Relative tempi are multiplied by the current absolute tempo and the result is rounded to the nearest integer.
+
 #### Key Signatures
-    * All common major and minor key signatures are recognized. Use lower case for minor, upper for major.
-    * Example: `K=b` for B minor, `K=E@` for E-flat major.
-    * Majors: `C G D A  E  B  C@ F# G@ C# D@ A@ E@ B@ F`
-    * Minors: `a e b f# c# g# a@ d# e@ a# b@ f  c  g  d`
-    * Placement: At the start of any measure before the first beat of the measure.
-    * You may omit accidentals that are in the key when writing notation.
-    * Numeric notation is interpreted so that `1` corresponds to the tonic of the most recent key signature.
-      * In minor keys the 3rd, 6th, and 7th degrees are flatted.
-      * Example: `K=f 12 34 56 71 |` produces the natural minor scale starting on F.
-  
+  * All common major and minor key signatures are recognized. Use lower case for minor, upper for major.
+  * Example: `K=b` for B minor, `K=E@` for E-flat major.
+  * Majors: `C G D A  E  B  C@ F# G@ C# D@ A@ E@ B@ F`
+  * Minors: `a e b f# c# g# a@ d# e@ a# b@ f  c  g  d`
+  * Placement: At the start of any measure before the first beat of the measure.
+  * You may omit accidentals that are in the key when writing notation.
+  * Numeric notation is interpreted so that `1` corresponds to the tonic of the most recent key signature.
+    * In minor keys the 3rd, 6th, and 7th degrees are flatted.
+    * Example: `K=f 12 34 56 71 |` produces the natural minor scale starting on F.
+
 #### Velocity (Loudness)
-    * Specify with `V=` anywhere between (but not within) beats.
-    * Default is V=0.8 which corresponds to midi velocity 101 for all notes.
-    * Allowed values are between 0.0 (silence) and 1.0 (maximum, midi 127).
-    * Affects all following notes until changed.
-    * See examples/echo.tbn for an example.
-        ```
-        /* Testing velocity changes. */
-        V=0.8 12 34 5 - | V=0.5 /12 34 5 - |
-        V=0.8 54 32 1 - | V=0.5 ^54 32 1 - |
+  * Specify with `V=` anywhere between (but not within) beats.
+  * Default is V=0.8 which corresponds to midi velocity 101 for all notes.
+  * Allowed values are between 0.0 (silence) and 1.0 (maximum, midi 127).
+  * Affects all following notes until changed.
+  * See examples/echo.tbn for an example.
+      ```
+      /* Testing velocity changes. */
+      V=0.8 12 34 5 - | V=0.5 /12 34 5 - |
+      V=0.8 54 32 1 - | V=0.5 ^54 32 1 - |
         ```
 #### De-emphasis
-    controls the amount of emphasis given to the downbeat. It's specified as the amount of de-emphasis applied to the other beats in the measure to make the math cleaner.
-    * Syntax `D=N` where N is between 0.0 and 1.0 inclusive.
-    * Default is `D=0.0` (no de-emphasis, all notes equal velocity).
-    * Velocities of notes that aren't on the downbeat are scaled by (1.0 - N).
-    * Placement: At the start of any measure before the first beat of the measure.
-    * Affects all following notes until changed.
-    * See examples/emphasis.tba
-    ```
-        /* Illustrates effect of de-emphasis */
+  controls the amount of emphasis given to the downbeat. It's specified as the amount of de-emphasis applied to the other beats in the measure to make the math cleaner.
+  * Syntax `D=N` where N is between 0.0 and 1.0 inclusive.
+  * Default is `D=0.0` (no de-emphasis, all notes equal velocity).
+  * Velocities of notes that aren't on the downbeat are scaled by (1.0 - N).
+  * Placement: At the start of any measure before the first beat of the measure.
+  * Affects all following notes until changed.
+  * See examples/emphasis.tba
+      ```
+      /* Illustrates effect of de-emphasis */
 
-        /* None */
-        K=C T=120 D=0.0
-        c d e | f g a | b c d | c - - |
+      /* None */
+      K=C T=120 D=0.0
+      c d e | f g a | b c d | c - - |
 
-        /* Subtle */
-        D=0.1
-        /c d e | f g a | b c d | c - - |
+      /* Subtle */
+      D=0.1
+      /c d e | f g a | b c d | c - - |
 
-        /* Quite noticeable */
-        D=0.3
-        /c d e | f g a | b c d | c - - |
+      /* Quite noticeable */
+      D=0.3
+      /c d e | f g a | b c d | c - - |
 
-        /* Almost certainly too much */
-        D=0.5
-        /c d e | f g a | b c d | c - - |
-    ```
+      /* Almost certainly too much */
+      D=0.5
+      /c d e | f g a | b c d | c - - |
+      ```
 #### Channel
 
 By default, tbon assigns MIDI channel number 1 to all notes in all parts.  You can explicitly assign different channel numbers.
-    * Syntax: `C=N`
-    * Valid values for N are 1 thru 16, inclusive.
-    * Different parts may have different channel numbers.
+
+  * Syntax: `C=N`
+  * Valid values for N are 1 thru 16, inclusive.
+  * Different parts may have different channel numbers.
 #### Percussion
-    * To write percussion, use `C=10` and follow the General MIDI Percussion Keymap.
-      * See [Percussion Keymap](http://computermusicresource.com/GM.Percussion.KeyMap.html)
-      * Tbon doesn't do anything special for percussion. It relies on your synthesizer to apply the standard interpretation to note events on channel 10.
-    * Example:
-      ```
-      /* Bass drum, snare, ride pattern */
+  * To write percussion, use `C=10` and follow the General MIDI Percussion Keymap.
+    * See [Percussion Keymap](http://computermusicresource.com/GM.Percussion.KeyMap.html)
+    * Tbon doesn't do anything special for percussion. It relies on your synthesizer to apply the standard interpretation to note events on channel 10.
+  * Example:
+    ```
+    /* Bass drum, snare, ride pattern */
 
-      /* Bass drum GM #36, snare #38, ride #51 */
-      D=0.2
-      C=10 (//1^@3)3 (/2^3)3 (/1^3)3  (/2^3)3 |
+    /* Bass drum GM #36, snare #38, ride #51 */
+    D=0.2
+    C=10 (//1^@3)3 (/2^3)3 (/1^3)3  (/2^3)3 |
 
-      (/1^@3)3  (/2^3)3 (/1^3)3  (/2^3)3  |
+    (/1^@3)3  (/2^3)3 (/1^3)3  (/2^3)3  |
 
-      (/1^@3)3  (/2^3)3 (/1^3)3  (/2^3)-/22  |
+    (/1^@3)3  (/2^3)3 (/1^3)3  (/2^3)-/22  |
 
-      (1^@3)3   (/2^3)3 (/1^3)(/1^3) (/2^3)3  |
-      ```
-      ![](doc/img/percussion.png)
+    (1^@3)3   (/2^3)3 (/1^3)(/1^3) (/2^3)3  |
+    ```
+    ![](doc/img/percussion.png)
 #### Comments
-    * Tbon supports C-style comments that may span multiple lines.
-    * Comments start with `/*` and end with `*/`
-    * Placement: anywhere except inside a beat.
-      * `/* ok */ a b /* ok, too. */ c d | /* ok, too. */ e f g a | /* and this is also ok. */`
-    * See examples/comments.tbn
-    ```
-     /* 
-     This is a comment that
-     spans three lines and that, 
-     my friends, is perfectly fine. 
-     */
-     1 2 3 - | /* comment between bars */ 1 2 3 - |
-     /* Coment at end of file */
-    ```
+  * Tbon supports C-style comments that may span multiple lines.
+  * Comments start with `/*` and end with `*/`
+  * Placement: anywhere except inside a beat.
+    * `/* ok */ a b /* ok, too. */ c d | /* ok, too. */ e f g a | /* and this is also ok. */`
+  * See examples/comments.tbn
+  ```
+   /* 
+   This is a comment that
+   spans three lines and that, 
+   my friends, is perfectly fine. 
+   */
+   1 2 3 - | /* comment between bars */ 1 2 3 - |
+   /* Coment at end of file */
+  ```
 
-      
+
 ## Command line
 The top level executable is `tbon.py`. As I mentioned earlier it's useful to make a symbolic link to it somewhere in your path. For example, I did `ln -s ~/tbon.py ~/bin/tbon` so I can type `tbon` from any directory to process input files. Here's the help available by typing `tbon -h`.
 ```
@@ -424,9 +427,9 @@ optional arguments:
      * myfile.mid
      * myfile_with_metronome.mid
      * myfile_metronome_only.mid
-     
+
      The first contains just the music you entered. The second has a separate metronome track that follows your tempo and metter changes. You may find this quite useful for learning transcribed music. The metronome only file has just the metronome and can be useful for testing how well you play or sing a piece without accompaniment.
-     
+
 ### File extensions
   * Tbon uses the file extension to determine whether to expect numbers or letters as pitch names.
   * `.tba` indicates letters.
@@ -452,13 +455,12 @@ optional arguments:
   Beat Map: Number of beats in each bar
   10:                   4    4    4    4
   ```
-   
 
- 
+
 
 ## Contributing
 All suggestions and questions are welcome. I'd especially welcome help putting together a good setup.py to make it easy to put tbon on PyPi. As this is my first serious attempt at writing a parser, I'd also welcome suggestions for improving what I presently have (though it seems to be working rather well at the moment). See the issues section for more ideas.
 
 ## Oh, and one more thing ...
 I'd love to be able to include clickable links to MIDI files for the examples but GitHub doesn't support linking to them in comments and README files. They tell me that hearing requests from more people would increase the chance they'll get around to adding MIDI files to the many filetypes they already support. So please send a note to support@github.com asking them to make it so. Thanks! 
-          
+
