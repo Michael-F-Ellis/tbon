@@ -136,20 +136,21 @@ tbon can represent *any* rhythm that can be represented in conventional music no
 
 #### Accidentals
 Sharps,flats and naturals are '#', '@' and '%' respectively.
-      - Double sharp and double flat are `##` and `@@` respectively.
-      - Accidentals come __before__ the pitch, i.e. `#f` not `f#`.
-      - Accidentals persist until the end of the measure (standard music convention)
-      - You may also use Unicode music symbols to improve readability.
-        - Unfortunately most keyboard layouts don't include them in any convenient way.
-        - Some mobile browsers may not render them correctly.
-        - Example:
-          ```
-          /* Unicode accidental support. */
-          c♭c 𝄫c♭c ♮c♯c 𝄪c♯c | c - - - |
-          /* is the same as */
-          c@c @@c@c %c#c ##c#c | c - - - |
-          ```
-          ![](doc/img/unicode_accidentals.png)
+  * Double sharp and double flat are `##` and `@@` respectively.
+  * Accidentals come __before__ the pitch, i.e. `#f` not `f#`.
+  * Accidentals persist until the end of the measure (standard music convention)
+  * You may also use Unicode music symbols to improve readability.
+    * Unfortunately most keyboard layouts don't include them in any convenient way.
+    * Some mobile browsers may not render them correctly.
+    * Example:
+          
+      ```
+      /* Unicode accidental support. */
+      c♭c 𝄫c♭c ♮c♯c 𝄪c♯c | c - - - |
+      /* is the same as */
+      c@c @@c@c %c#c ##c#c | c - - - |
+      ```
+      ![](doc/img/unicode_accidentals.png)
       
       
 #### Octave marks
