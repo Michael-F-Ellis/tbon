@@ -67,35 +67,36 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
 ### Basic notation
 #### Beats 
 are groups of pitches, rests and holds followed by whitespace. 
-    * The measure below has two beats.
-        ```
-        ab-c de |
-        ```
-        ![Two Beats](doc/img/twobeats.png)
+  * The measure below has two beats.
+      ```
+      ab-c de |
+      ```
+      ![Two Beats](doc/img/twobeats.png)
 #### Meter
 is determined by the number of beats between barlines ('|')
-      * You may freely change meters by putting more or fewer beats within a bar.
-         ```
-         /* The first measure below has 4 beats, the second has 3. */
-         a bc d ef | g - - |
-         ```
-        ![Meter Change](doc/img/meterchange.png)
+  * You may freely change meters by putting more or fewer beats within a bar.
+    ```
+    /* The first measure below has 4 beats, the second has 3. */
+    a bc d ef | g - - |
+    ```
+    ![Meter Change](doc/img/meterchange.png)
 
 #### Pitch names
 are represented by `a b c d e f g`. 
-    * Tbon also supports movable pitches `1 2 3 4 5 6 7`.
-      * `1` corresponds to the tonic of the current key. 
+  * Tbon also supports movable pitches `1 2 3 4 5 6 7`.
+    * `1` corresponds to the tonic of the current key. 
 
 #### Hyphen  `-`
 indicates continuation within and across beats (i.e. a tie).
 
 #### Rests
 are indicated by letter `z` or underscore `_`.
-    * Notice that rests are also extended by hyphens
-      ```
-      cz - cz | -c - z |
-      ```
-      ![Rests](doc/img/rests.png)
+
+  * Notice that rests are also extended by hyphens
+    ```
+    cz - cz | -c - z |
+    ```
+    ![Rests](doc/img/rests.png)
 
 
 #### Note durations 
