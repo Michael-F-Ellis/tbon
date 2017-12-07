@@ -19,8 +19,11 @@ Any DAW or notation program that correctly reads MIDI files should be able to im
 
 This repo is very much *alpha* software. That being said, the parser and evaluator are passing all tests and it's possible to write melodies and convert them to midi files quite easily. Moreover, I don't anticipate making any breaking changes to the language at this point (I've been tinkering with the design for ten years now so it feels pretty much final in terms of basic syntax and capabilities).
 
+## Live Demo
+__You can try tbon without installing anything.__ There's a demo server that's running at (http://ellisgrant.pythonanywhere.com) but do skip down and skim the [Tutorial](Tutorial) section of this page beforehand.
+
 ## Installation
-There's no installer at present so you'll need to clone the repo or copy the files.
+There's no installer at present so if you want to run tbon on your own computer, you'll need to clone the repo or copy the files. There's some necessary info in the next two sections.
 
 ## Dependencies
 * The code was written with Python 3.5. I haven't tested with 2.x. 
