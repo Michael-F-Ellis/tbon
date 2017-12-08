@@ -82,6 +82,11 @@ is determined by the number of beats between barlines ('|')
     a bc d ef | g - - |
     ```
     ![Meter Change](doc/img/meterchange.png)
+  * You may use a colon, `:`, instead of `|` for barlines. The colon is easier to type from many smartphone keyboards.
+    ```
+    /* Above example with colons as barlines */
+    a bc d ef : g - - :
+    ```
 
 #### Pitch names
 are represented by `a b c d e f g`. 
