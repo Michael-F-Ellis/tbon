@@ -42,7 +42,7 @@ def parse(source):
         floatnum = ~r"\d*\.?\d+"i
         chnum = "16" / "15" / "14" / "13" / "12" / "11" / "10" / ~r"\d"i
         beat = subbeat+
-        barline = "|"
+        barline = "|" / ":"
         extendable = chord / roll / ornament / pitch / rest
         pitch = octave* alteration? pitchname
         chord = chordstart chorditem chorditem* rparen

@@ -95,6 +95,14 @@ def test_melody():
     evaluate('#d - | -b c |',
              [(63, 0.0, 2.5,), (59, 2.5, 3.0), (60, 3.0, 4.0)],)
 
+def test_barline():
+    """ Verify that : and | are equivalent """
+    evaluate('#d - | -e - |', [(63, 0.0, 2.5,), (64, 2.5, 4.0)])
+    evaluate('#d - : -e - :', [(63, 0.0, 2.5,), (64, 2.5, 4.0)])
+    ## Verify roll start (: does not conflict with : as barline
+    evaluate('(:ab) :',
+             [(57, 0.0, 1.0), (59, 0.50, 1.0)],)
+
 def test_chord():
     evaluate('(ab)- c |',
              [(57, 0.0, 1.0), (59, 0.0, 1.0), (60, 1.0, 2.0)],)
@@ -275,13 +283,16 @@ def test_de_emphasis():
               (64, 2.0, 3.0, 0.8, 1), (65.0, 3.0, 4.0, 0.7, 1)],
              ignore_velocity=False)
     evaluate('D=0.125 (ce) d |',
-             [(60, 0.0, 1.0, 0.8, 1), (64, 0.0, 1.0, 0.8, 1), (62.0, 1.0, 2.0, 0.7, 1)],
+             [(60, 0.0, 1.0, 0.8, 1), (64, 0.0, 1.0, 0.8, 1),
+              (62.0, 1.0, 2.0, 0.7, 1)],
              ignore_velocity=False)
     evaluate('D=0.125 (:ce) d |',
-             [(60, 0.0, 1.0, 0.8, 1), (64, 0.5, 1.0, 0.7, 1), (62.0, 1.0, 2.0, 0.7, 1)],
+             [(60, 0.0, 1.0, 0.8, 1), (64, 0.5, 1.0, 0.7, 1),
+              (62.0, 1.0, 2.0, 0.7, 1)],
              ignore_velocity=False)
     evaluate('D=0.125 (~ce) d |',
-             [(60, 0.0, 0.5, 0.8, 1), (64, 0.5, 1.0, 0.7, 1), (62.0, 1.0, 2.0, 0.7, 1)],
+             [(60, 0.0, 0.5, 0.8, 1), (64, 0.5, 1.0, 0.7, 1),
+              (62.0, 1.0, 2.0, 0.7, 1)],
              ignore_velocity=False)
 
 def test_beatspec():
@@ -311,11 +322,14 @@ def evaluate(source, expected, numeric=False,
         assert t == approx(expected[i])
 
 def test_metronome():
-    metroevaluate('a b - cd  |', [(76, 0.0, 1.0, 0.8, 10), (77, 1.0, 2.0, 0.8, 10),
-                                  (77, 2.0, 3.0, 0.8, 10), (77, 3.0, 4.0, 0.8, 10)],
+    metroevaluate('a b - cd  |', [(76, 0.0, 1.0, 0.8, 10),
+                                  (77, 1.0, 2.0, 0.8, 10),
+                                  (77, 2.0, 3.0, 0.8, 10),
+                                  (77, 3.0, 4.0, 0.8, 10)],
                   ignore_velocity=False)
 
-    metroevaluate('B=4. a b |', [(76, 0.0, 1.5, 0.8, 10), (77, 1.5, 3.0, 0.8, 10)],
+    metroevaluate('B=4. a b |', [(76, 0.0, 1.5, 0.8, 10),
+                                 (77, 1.5, 3.0, 0.8, 10)],
                   ignore_velocity=False)
 
     metroevaluate('B=4. D=0.25 a b |', [(76, 0.0, 1.5, 0.8, 10),
