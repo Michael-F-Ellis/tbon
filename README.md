@@ -5,12 +5,10 @@ __Tbon aims to be the fastest way to enter pitches, rhythms, meter and dynamic l
 
 Tbon is a musical language I developed for my own use about a decade ago.  It's a quick notation shorthand for writing melodies -- by hand or with a computer keyboard -- that also aims to be 'readable' in the sense that it's possible to play from it by sight.
 
-Over the years I'm made several attempts to write a parser using regexes but never found time to get it working properly. I recently came across Erik Rose's [Parsimonious](https://github.com/erikrose/parsimonious) Python PEG and had a working grammar within a couple of hours. I can't say enough good things about Parsimonious. Kudos also to Mark C. Wirt's [MIDIUtil](https://github.com/MarkCWirt/MIDIUtil). I use it in the tbon executable to convert tbon's output to midi files and it works "mahvellously."
-
 Tbon borrows ideas from Lilypond, ABC, and music21's TinyNotation. What makes it different is that it's never necessary to explicity specify a note duration (e.g. 1/2, 1/4) or a meter (e.g. 4/4, 6/8, etc). Beats are groups of notes separated by whitespace.
 
 Tbon produces MIDI files with tempo, key, and meter changes correctly specified. So far, I've verified that the files can be imported to:
-  * MuseScore -- A very popular freeware notation editor.
+  * MuseScore -- An excellent and very popular freeware notation editor. I used it for all the musical images in this document.
   * Reaper -- An inexpensive commercial DAW that runs on Windows and OS X
   * Logic Pro X -- Professional DAW from Apple. (OS X only)
   * QMidi - low-cost commercial player app.
@@ -18,6 +16,28 @@ Tbon produces MIDI files with tempo, key, and meter changes correctly specified.
 Any DAW or notation program that correctly reads MIDI files should be able to import, play, and edit the files produced by Tbon. (Note: Garage Band does not support changes of meter in imported MIDI files. I don't recommend it.)
 
 This repo is very much *alpha* software. That being said, the parser and evaluator are passing all tests and it's possible to write melodies and convert them to midi files quite easily. Moreover, I don't anticipate making any breaking changes to the language at this point (I've been tinkering with the design for ten years now so it feels pretty much final in terms of basic syntax and capabilities).
+
+## Acknowledgments
+  * Over the years I'm made several attempts to write a parser for Tbon using regexes but never found time to get it working properly. I recently came across Erik Rose's [Parsimonious](https://github.com/erikrose/parsimonious) Python PEG and had a working grammar within a couple of hours. I can't say enough good things about Parsimonious. 
+  * Kudos also to Mark C. Wirt's [MIDIUtil](https://github.com/MarkCWirt/MIDIUtil). I use it in the tbon executable to convert tbon's output to midi files and it works "mahvellously."
+  * [Pytest](https://docs.pytest.org/en) is far and away the best Python testing framework I've found. Introspecting assert statements and smart approximate comparisons are the bomb!
+
+## Tbon's niche in the music software ecosytem
+There are dozens of great (and not-so-great) [music software programs](https://en.wikipedia.org/wiki/List_of_music_software) available. I mentioned a few I use regularly in the  introduction at the top of this README. Some specialize in typesetting -- the creation of printed music notation -- while others, usually known as DAWs (Digital Audio Workstations), focus on editing and mixing recorded MIDI and audio.
+
+Tbon is intended as a front-end for either category. Its strength is easy entry and editing of pitches, rhythms and dynamics with a simple and clean syntax that covers the broadest possible range of notatable music. Much of the simplicity comes from a design decision to favor quickly getting to output you can hear without worrying about what printed notes will represent the music.
+
+Here are some ways I'm using Tbon.
+
+**For learning music:** I sing baritone in several different choral groups. Some the works we perform are quite complex with time signatures that change every measure and frequent shifts of tonality.  Like many choristers, I'm musically knowledgable but I don't play piano accurately (at least not without a lot of practice on any given passage). I use Tbon to quickly create accurate midi files of parts I need to learn with proper tempi and dynamics. 
+
+For my own use, midi playback is usually all that's needed. For files I share with others, I usually improve the sound by importing the midi files into a DAW (Reaper) and output an mp3 rendered through a sampled grand piano synth. Using a DAW also permits fine-scale editing for special articulations e.g *szforando, subito piano* etc. (For simplicity, Tbon ignores the possibility of tempo and dynamic changes at durations smaller than an entire beat.)
+
+**For ear training:** In my experience, the most valuable ear training is learning to hear and write out the pitches and rhythms real music. Tbon's numeric pitch option (1, 2, 3, ...  == do, re, mi ...) is expressly included for that purpose. For a good video discussion of relative pitch ear training, see [this video](https://vimeo.com/130824567) by music educator Julian Bradley.  
+
+**For composition:** I first developed Tbon as a pencil-and-paper notation for quickly writing down melodic ideas anywhere on any available scrap of paper. It's still useful in that way.  In implementing it as a computer language, I've extended it to make it possible to write out music in multiple polyphonic parts. (Now if I can only manage to spend less time developing and documenting Tbon, I might actually find time time to write some more music :-)
+
+I'm not a music teacher so I can't say I'm using Tbon **for teaching music** but I do believe a musically inclined child could grasp the basics in a very short time.
 
 ## Live Demo
 __You can try tbon without installing anything.__ There's a demo server that's running at (http://ellisgrant.pythonanywhere.com) but do skip down and skim the [Tutorial](#tutorial) section of this page beforehand.
@@ -464,8 +484,6 @@ optional arguments:
   Beat Map: Number of beats in each bar
   10:                   4    4    4    4
   ```
-
-
 
 ## Contributing
 All suggestions and questions are welcome. I'd especially welcome help putting together a good setup.py to make it easy to put tbon on PyPi. As this is my first serious attempt at writing a parser, I'd also welcome suggestions for improving what I presently have (though it seems to be working rather well at the moment). See the issues section for more ideas.
