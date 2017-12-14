@@ -33,34 +33,14 @@ Here are some ways I'm using Tbon.
 
 For my own use, midi playback is usually all that's needed. For files I share with others, I usually improve the sound by importing the midi files into a DAW (Reaper) and output an mp3 rendered through a sampled grand piano synth. Using a DAW also permits fine-scale editing for special articulations e.g *szforando, subito piano* etc. (For simplicity, Tbon ignores the possibility of tempo and dynamic changes at durations smaller than an entire beat.)
 
-**For ear training:** In my experience, the most valuable ear training is learning to hear and write out the pitches and rhythms real music. Tbon's numeric pitch option (1, 2, 3, ...  == do, re, mi ...) is expressly included for that purpose. For a good video discussion of relative pitch ear training, see [this video](https://vimeo.com/130824567) by music educator Julian Bradley.  
+**For ear training:** In my experience, the most valuable ear training is learning to hear and write out the pitches and rhythms of real music. Tbon's numeric relative pitch option (1, 2, 3, ...  == do, re, mi ...) is expressly included for that purpose. For a good video discussion of the merits of relative pitch ear training, see [this video](https://vimeo.com/130824567) by music educator Julian Bradley.  
 
-**For composition:** I first developed Tbon as a pencil-and-paper notation for quickly writing down melodic ideas anywhere on any available scrap of paper. It's still useful in that way.  In implementing it as a computer language, I've extended it to make it possible to write out music in multiple polyphonic parts. (Now if I can only manage to spend less time developing and documenting Tbon, I might actually find time time to write some more music :-)
+**For composition:** I first developed Tbon as a pencil-and-paper notation for quickly writing down melodic ideas anywhere on any available scrap of paper. It's still useful in that way.  In implementing it as a computer language, I've extended it to make it possible to write out music in multiple polyphonic parts. (Now if I can only manage to spend less time developing and documenting Tbon, I might actually find time to write some more music :-)
 
 I'm not a music teacher so I can't say I'm using Tbon **for teaching music** but I do believe a musically inclined child could grasp the basics in a very short time.
 
 ## Live Demo
-__You can try tbon without installing anything.__ There's a demo server that's running at (http://ellisgrant.pythonanywhere.com) but do skip down and skim the [Tutorial](#tutorial) section of this page beforehand.
-## Installation
-There's no installer at present so if you want to run tbon on your own computer, you'll need to clone the repo or copy the files. There's some necessary info in the next two sections.
-
-## Dependencies
-* The code was written with Python 3.5. I haven't tested with 2.x. 
-* The parser requires Parsimonious (pip install parsimonious).
-* The test suite needs to be run with PyTest (pip install pytest).
-* To create a midi file, you'll need MIDIUtil (pip install MIDIUtil)
-
-## Quick Start
-Begin by building the examples. Assuming you've cloned into `~/tbon` do the following:
-```
-cd ~/tbon
-./tbon.py examples/*.tb*
-```
-Tbon will process the notation source files in the examples directory and create MIDI files you can play or import into your favorite notation editor or DAW.
-
-You can create your own input files with a text editor using the syntax described below. I suggest making a symbolic link from somewhere in your path to `~/tbon.py` so you can save your work outside the repo.
-
-To dive deeper, look at `parser.py` and `test_parser.py`.
+__You can try tbon without installing anything.__ There's a demo server that's running at (http://ellisgrant.pythonanywhere.com) but do skip down and skim the [Tutorial](#tutorial) section of this page beforehand. If you decide you'd like to run tbon on your own computer, see the [Local Installation](#local-installation) section of this README.
 
 ## Tutorial
 Let's begin with a couple of familiar tunes that illustrate the majority of tbon's notation syntax.
@@ -73,7 +53,7 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
   ```
   ![Happy Birthday score](doc/img/happy_f.png)
 
-  *Except where otherwise noted, musical images in this document were created by importing tbon midi files directly into  MuseScore 2.1 without further editing.* 
+  *<small>Except where otherwise noted, musical images in this document were created by importing tbon midi files directly into  MuseScore 2.1 without further editing.</small>* 
 
   * Here's the chorus of Leonard Bernstein's *America* theme from West Side Story. I've shown it with numerical pitches just to illustrate how tbon supports those. More importantly, notice how easily tbon represents Bernstein's shifts between 6/8 and 3/4 time on alternate bars
 
@@ -431,6 +411,30 @@ By default, tbon assigns MIDI channel number 1 to all notes in all parts.  You c
    1 2 3 - | /* comment between bars */ 1 2 3 - |
    /* Coment at end of file */
   ```
+
+## Local Installation
+There's no installer at present so if you want to run tbon on your own computer, you'll need to clone this repository or copy the files. Installing tbon locally provides some advantages over the Live Demo site. You can
+  * use your favorite text editor,
+  * choose your own midi player,
+  * create tbon files of unlimited length.
+
+## Dependencies
+  * The code was written with Python 3.5. I haven't tested with 2.x. 
+  * The parser requires Parsimonious (pip install parsimonious).
+  * The test suite needs to be run with PyTest (pip install pytest).
+  * To create a midi file, you'll need MIDIUtil (pip install MIDIUtil)
+
+## Quick Start
+Begin by building the examples. Assuming you've cloned into `~/tbon` do the following:
+```
+cd ~/tbon
+./tbon.py examples/*.tb*
+```
+Tbon will process the notation source files in the examples directory and create MIDI files you can play or import into your favorite notation editor or DAW.
+
+You can create your own input files with a text editor using the syntax described below. I suggest making a symbolic link from somewhere in your path to `~/tbon.py` so you can save your work outside the repo.
+
+To dive deeper, look at `parser.py` and `test_parser.py`.
 
 
 ## Command line
