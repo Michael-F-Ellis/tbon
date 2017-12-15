@@ -103,7 +103,7 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
 
   Lastly, as promised in first example, we see the down octave mark on the `c` in the last measure to force the leap down from the high 'e' above.
 
-Here endeth the tutorial. The notation reference below contains the fine print and more illustrations of the concepts we've just covered plus some other considerations that include [tempo](absolute-tempo), [volume](velocity-loudness), [downbeat emphasis](de-emphasis) and [MIDI Channel](channel). The extended notation section explains how to write [chords](chords) and [multiple voices](multiple-voices). (tbon is quite capable of representing an entire symphony score).
+Here endeth the tutorial. The notation reference below contains the fine print and more illustrations of the concepts we've just covered plus some other considerations that include [tempo](#absolute-tempo), [volume](#velocity-loudness), [downbeat emphasis](#de-emphasis) and [MIDI Channel](#channel). The extended notation section explains how to write [chords](#chords) and [multiple voices](#multiple-voices). (tbon is quite capable of representing an entire symphony score).
 
 ## Notation Reference
 ### Basic notation
