@@ -48,24 +48,64 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
 
   ```
     K=F
-    - - cc | d c f  | e - cc | d c ^g | f - cc |
+    z - cc | d c f  | e - cc | d c ^g | f - cc |
     ^c a f | e d ^bb | a f g  | f - - |
   ```
   ![Happy Birthday score](doc/img/happy_f.png)
 
-  *<small>Except where otherwise noted, musical images in this document were created by importing tbon midi files directly into  MuseScore 2.1 without further editing.</small>* 
-
-  * Here's the chorus of Leonard Bernstein's *America* theme from West Side Story. I've shown it with numerical pitches just to illustrate how tbon supports those. More importantly, notice how easily tbon represents Bernstein's shifts between 6/8 and 3/4 time on alternate bars
-
-
+  *<tiny>Except where otherwise noted, musical images in this document were created by importing tbon midi files directly into  MuseScore 2.1 without further editing.</tiny>*
+  
+  If you've used other text-based note entry systems, this should look somewhat familiar. You've probably guessed that the `K=F` in the first line tells tbon that the pitches should be interpreted as being in F major, i.e. that 'b' is flatted unless modified by an accidental.
+  
+  Now look at the first measure, `z - cc |`. You've just met the 4 most important symbols in tbon. 
+  
+  We use `z` for rests. By itself, the `z` indicates that the first beat is silent.
+  
+  The next symbol is a dash (`-`, keyboard 'minus'). Dashes extend the preceding note or rest. In this case it comes after a rest, meaning that beat two of this measure is alsosilent. (Note: It could have been written `z z` and produced the same music)
+  
+  Beat 3 of the first measure is `cc`. It represents a pair of 'c' notes, each lasting half the beat. That's a really important principle in tbon: *When notes or rests or dashes appear together without spaces between them, they divide one beat into equal parts.* So if the beat is a quarter-note, `cc` represents two eighth-notes.
+  
+  Similarly, `ccc` would be a triplet beat, `cccc` four sixteenths, `ccccc` a quintuplet and so on. Want to divide a beat into notes of different length? No problem, just use dashes. Here's a dotted-eighth + sixteenth division: `c--c`. The first 'c' gets 3/4 of the beat and the second one gets the remaining 1/4 of the beat.
+  
+  Ok, back to Happy Birthday.  As you might guess, measures are separated by barlines (the `|` symbol). When Tbon sees one of those, it counts the beats in the measure and inserts a time-signature at the beginning of the measure. Our first measure has 3 beats and Tbon assumes a quarter-note beat unless you indicate otherwise, so our first measure is in 3/4 time.
+  
+  If you look ahead you'll see that all the remaining measures also have 3 beats. Tbon won't insert unneeded time signatures in those measures.
+  
+  There's one more new symbol in measures 4, 6 and 7. It's an octave mark, `^`. Until the fourth measure, all the pitches in the melody have been within a musical 4th of the preceeding pitch. Now the melody needs to leap up by a 5th from `c` to `g`. Without the `^` octave mark, tbon would have pitched the `g` a 4th below the `c`.
+  
+  We'll meet the downward octave mark, `/`, in our next example melody.        
+  * Here's the chorus of Leonard Bernstein's *America* theme from West Side Story.
     ```
     K=C B=4.
+    /* I like to be in America ... */
     ^555 111  | 6-4 -1- | ^555 111  | 2-7 -5- |
     @777 @333 | 2-@7 -4- | @333 @666 | 5-^3 -/1- |
     ```
     ![America](doc/img/bernstein_america.png)
 
+ The first line, `K=C B=4.` tells tbon that the key is C major and that the beat note, `B=4.` is a dotted quarter-note. This tune is in 6/8 time. Musicians call 6/8, 9/8, etc *compound meters*, meaning that the beat is a multiple of the duration given in the time signature's denominator.
 
+  The second line, `/* I like to be in America ... */`, is a comment. It has no effect on the music tbon produces. (C programmers will recognize the syntax. For everyone else, just know that anything you enclose between `/*` and `*/` is a comment.)
+
+  Let's look at the 1st measure, `^555 111 |`. The up octave mark is familiar, but what's with those numbers? They're tbon's other pitch format. The numbers are what musicians call *diatonic scale degrees*, which for our example is an overblown way of saying "1 is c, 2 is d, 3 is e, 4 is f, 5 is g, 6 is a, 7 is b." But it's really more than that because tbon takes the key signature into account when deciding which number matches which note name. If we changed `K=C` to `K=E`, 1 would be 'e', 2 #f, 3 #g, and so on.
+
+  The very first note in our example, `^5`, is the fifth note of the C major scale, `g`. We need the octave mark because tbon assigns the pitch of the first note in a tune by assuming it was preceded by Middle C and we want the `g` in this melody to be the note above.
+
+  Before moving on to measure 2, notice that there are 2 beats in measure 1 and each is divided in to 3 parts. Tbon will notice the 2 beats and the dotted-quarter beat note (`B=4.`) and insert a 6/8 time signature. 
+
+  Now look at measure two, `6-4 -1- |`. Mr. Bernstein used a rhythmic pattern that's common in Latin American music,  *"3 against 2"*, by breaking the two beats of 6/8 into 3 notes of equal length as if the meter had changed from 6/8 to 3/4. (in fact we could have notated that second measure as `B=4  6 4 1 |` and tbon would have inserted the 3/4 signature.)
+
+  Measure two shows how to handle triplets that span 2 beats. That happens frequently in music and it's worthwhile to see how it works. To split two beats into 3 parts, start by splitting each beat into 3 parts. Then give each note two of those parts so that the note in the middle spans from the end of the first beat into the start of the second. The same logic can be applied to more difficult cases, e.g, splitting 3 beats into a quintuplet: `1--2-  -3--4  --5--`.
+
+  We've not yet encountered sharps, flats, and naturals (aka *accidentals*) so look at measure 4. The `@` before the 7 and the 3 means to flat them.  Tbon follows the conventions of printed music: Accidentals are put **before** the note and they persist for the remainder of the measure. So all the 7's and all the 3's in measure four are flatted.
+
+  The symbols for sharp and natural are `#` and `%`.
+
+  Lastly, as promised in first example, we see the down octave mark on the `c` in the last measure to force the leap down from the high 'e' above.
+
+Here endeth the tutorial. The notation reference below contains the fine print and more illustrations of the concepts we've just covered plus some other considerations that include [tempo](absolute-tempo), [volume](velocity-loudness), [downbeat emphasis](de-emphasis) and [MIDI Channel](channel). The extended notation section explains how to write [chords](chords) and [multiple voices](multiple-voices). (tbon is quite capable of representing an entire symphony score).
+
+## Notation Reference
 ### Basic notation
 #### Beats 
 are groups of pitches, rests and holds followed by whitespace. 
