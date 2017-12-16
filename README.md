@@ -264,6 +264,7 @@ Pitches move up or down using the Lilypond relative pitch entry convention.
   * Relative tempo represents a fraction (or multiple) of the most recent absolute tempo.
   * `T=100 a b t=0.9 c d | t=1.0 e f g a |` means "Play the first two notes at 100 bpm, the next two at 90 bpm and the remainder at 100 bpm.
   * Relative tempi are multiplied by the current absolute tempo and the result is rounded to the nearest integer.
+  * __Important:__ Tbon tempos specify the duration of a quarter note. It would have been more musically correct to have the tempo refer to the most recent beat note value.  It's a choice I agonized over but in the end decided that being consistent with the MIDI file standard was more important. The practical significance is that if you use something other than `B=4` as your beat note,  you need to scale the tempo accordingly. Thus `B=2 T=120` will give you 60 half-notes per minute `B=4. T=120` will give 80 dotted-quarter notes per minute. 
 
 #### Key Signatures
   * All common major and minor key signatures are recognized. Use lower case for minor, upper for major.
@@ -280,15 +281,20 @@ Pitches move up or down using the Lilypond relative pitch entry convention.
   * Specify with `V=` anywhere between (but not within) beats.
   * Default is V=0.8 which corresponds to midi velocity 101 for all notes.
   * Allowed values are between 0.0 (silence) and 1.0 (maximum, midi 127).
+    * When transcribing printed music, I typically translate written dynamics as follows:
+      * _ppp, pp, p_ : `V=0.3, V=0.4, V=0.5`
+      * _mp, mf_  : `V=0.6, V=0.7`
+      * _f, ff, fff_ : `V=0.8, V=0.9, V=1.0`
+    * A lot depends on your synth software. Use your ears.
   * Affects all following notes until changed.
-  * See examples/echo.tbn for an example.
+  * See examples/echo.tbn
       ```
       /* Testing velocity changes. */
       V=0.8 12 34 5 - | V=0.5 /12 34 5 - |
       V=0.8 54 32 1 - | V=0.5 ^54 32 1 - |
         ```
 #### De-emphasis
-  controls the amount of emphasis given to the downbeat. It's specified as the amount of de-emphasis applied to the other beats in the measure to make the math cleaner.
+  controls the amount of emphasis given to the downbeat. It's specified as the amount of de-emphasis applied to the other beats in the measure to make the math cleaner. A little de-emphasis will bring out the meter and make the output sound more musical.
   * Syntax `D=N` where N is between 0.0 and 1.0 inclusive.
   * Default is `D=0.0` (no de-emphasis, all notes equal velocity).
   * Velocities of notes that aren't on the downbeat are scaled by (1.0 - N).
