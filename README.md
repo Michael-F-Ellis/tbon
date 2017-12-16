@@ -17,6 +17,11 @@ Any DAW or notation program that correctly reads MIDI files should be able to im
 
 This repo is very much *alpha* software. That being said, the parser and evaluator are passing all tests and it's possible to write melodies and convert them to midi files quite easily. Moreover, I don't anticipate making any breaking changes to the language at this point (I've been tinkering with the design for ten years now so it feels pretty much final in terms of basic syntax and capabilities).
 
+## Live Demo
+__You can try tbon without installing anything.__ There's a demo server that's running at (http://ellisgrant.pythonanywhere.com) but do skip down and skim the [Tutorial](#tutorial) section of this page beforehand. *The demo works best on a computer with a physical keyboard. Your smartphone's virtual keyboard layout and autocorrection will make it a frustrating experience.*
+
+If you decide you'd like to install and run tbon on your own computer, see the [Local Installation](#local-installation) section of this README.
+
 ## Acknowledgments
   * Over the years I'm made several attempts to write a parser for Tbon using regexes but never found time to get it working properly. I recently came across Erik Rose's [Parsimonious](https://github.com/erikrose/parsimonious) Python PEG and had a working grammar within a couple of hours. I can't say enough good things about Parsimonious. 
   * Kudos also to Mark C. Wirt's [MIDIUtil](https://github.com/MarkCWirt/MIDIUtil). I use it in the tbon executable to convert tbon's output to midi files and it works "mahvellously."
@@ -38,11 +43,6 @@ For my own use, midi playback is usually all that's needed. For files I share wi
 **For composition:** I first developed Tbon as a pencil-and-paper notation for quickly writing down melodic ideas anywhere on any available scrap of paper. It's still useful in that way.  In implementing it as a computer language, I've extended it to make it possible to write out music in multiple polyphonic parts. (Now if I can only manage to spend less time developing and documenting Tbon, I might actually find time to write some more music :-)
 
 I'm not a music teacher so I can't say I'm using Tbon **for teaching music** but I do believe a musically inclined child could grasp the basics in a very short time.
-
-## Live Demo
-__You can try tbon without installing anything.__ There's a demo server that's running at (http://ellisgrant.pythonanywhere.com) but do skip down and skim the [Tutorial](#tutorial) section of this page beforehand. *The demo works best on a computer with a physical keyboard. Your smartphone's virtual keyboard layout and autocorrection will make it a frustrating experience.*
-
-If you decide you'd like to install and run tbon on your own computer, see the [Local Installation](#local-installation) section of this README.
 
 ## Tutorial
 Let's begin with a couple of familiar tunes that illustrate the majority of tbon's notation syntax.
@@ -255,10 +255,112 @@ Pitches move up or down using the Lilypond relative pitch entry convention.
     * Changing the beat note does not change tempo.
       * The adjustment follows common practice in printed music, namely that changing meter numerator without an explicit tempo change retains the durations of printed notes before and after the change.  If you want a different tempo, you must explicitly change it.
 
+#### Tempo
+  * Tbon supports two kinds of tempo markers, absolute and relative.
+  * Either may appear anywhere except within a beat.
+  * Absolute tempo is specified like this in beats per minute:  `T=100`
+  * Relative tempo is specified like this: `t=0.9`
+  * Relative tempo is a floating point value greater than 0.
+  * Relative tempo represents a fraction (or multiple) of the most recent absolute tempo.
+  * `T=100 a b t=0.9 c d | t=1.0 e f g a |` means "Play the first two notes at 100 bpm, the next two at 90 bpm and the remainder at 100 bpm.
+  * Relative tempi are multiplied by the current absolute tempo and the result is rounded to the nearest integer.
+
+#### Key Signatures
+  * All common major and minor key signatures are recognized. Use lower case for minor, upper for major.
+  * Example: `K=b` for B minor, `K=E@` for E-flat major.
+  * Majors: `C G D A  E  B  C@ F# G@ C# D@ A@ E@ B@ F`
+  * Minors: `a e b f# c# g# a@ d# e@ a# b@ f  c  g  d`
+  * Placement: At the start of any measure before the first beat of the measure.
+  * You may omit accidentals that are in the key when writing notation.
+  * Numeric notation is interpreted so that `1` corresponds to the tonic of the most recent key signature.
+    * In minor keys the 3rd, 6th, and 7th degrees are flatted.
+    * Example: `K=f 12 34 56 71 |` produces the natural minor scale starting on F.
+
+#### Velocity (Loudness)
+  * Specify with `V=` anywhere between (but not within) beats.
+  * Default is V=0.8 which corresponds to midi velocity 101 for all notes.
+  * Allowed values are between 0.0 (silence) and 1.0 (maximum, midi 127).
+  * Affects all following notes until changed.
+  * See examples/echo.tbn for an example.
+      ```
+      /* Testing velocity changes. */
+      V=0.8 12 34 5 - | V=0.5 /12 34 5 - |
+      V=0.8 54 32 1 - | V=0.5 ^54 32 1 - |
+        ```
+#### De-emphasis
+  controls the amount of emphasis given to the downbeat. It's specified as the amount of de-emphasis applied to the other beats in the measure to make the math cleaner.
+  * Syntax `D=N` where N is between 0.0 and 1.0 inclusive.
+  * Default is `D=0.0` (no de-emphasis, all notes equal velocity).
+  * Velocities of notes that aren't on the downbeat are scaled by (1.0 - N).
+  * Placement: At the start of any measure before the first beat of the measure.
+  * Affects all following notes until changed.
+  * See examples/emphasis.tba
+      ```
+      /* Illustrates effect of de-emphasis */
+
+      /* None */
+      K=C T=120 D=0.0
+      c d e | f g a | b c d | c - - |
+
+      /* Subtle */
+      D=0.1
+      /c d e | f g a | b c d | c - - |
+
+      /* Quite noticeable */
+      D=0.3
+      /c d e | f g a | b c d | c - - |
+
+      /* Almost certainly too much */
+      D=0.5
+      /c d e | f g a | b c d | c - - |
+      ```
+      
+#### Comments
+  * Tbon supports C-style comments that may span multiple lines.
+  * Comments start with `/*` and end with `*/`
+  * Placement: anywhere except inside a beat.
+    * `/* ok */ a b /* ok, too. */ c d | /* ok, too. */ e f g a | /* and this is also ok. */`
+  * See examples/comments.tbn
+  ```
+   /* 
+   This is a comment that
+   spans three lines and that, 
+   my friends, is perfectly fine. 
+   */
+   1 2 3 - | /* comment between bars */ 1 2 3 - |
+   /* Coment at end of file */
+  ```
+
 ### Extended Notation
-  Using only the notation above, you can quickly write any single voice melody no matter how complex the rhythm. That's quite a lot for only a handful of symbols. The resultant midi file will have a C-major key signature, the tempo will be fixed at 120 bpm, and the midi file will interpret the beat duration as quarter notes. To move beyond those restrictions, continue reading.
+  With the basic notation you can quickly write any single voice melody no matter how complex the rhythm. That's quite a lot for only a handful of symbols. Continue reading to learn how to write percussion, chords, ornaments and multiple voice polyphony.
 
+#### Channel
 
+By default, tbon assigns MIDI channel number 1 to all notes in all parts.  You can explicitly assign different channel numbers. The most common reason for changing the channel number is writing percusssion.
+
+  * Syntax: `C=N`
+  * Valid values for N are 1 thru 16, inclusive.
+  * Different parts may have different channel numbers.
+#### Percussion
+  * To write percussion, use `C=10` and follow the General MIDI Percussion Keymap.
+    * See [Percussion Keymap](http://computermusicresource.com/GM.Percussion.KeyMap.html)
+    * Tbon doesn't do anything special for percussion. It relies on your synthesizer to apply the standard interpretation to note events on channel 10.
+  * Example:
+    ```
+    /* Bass drum, snare, ride pattern */
+
+    /* Bass drum GM #36, snare #38, ride #51 */
+    D=0.2
+    C=10 (//1^@3)3 (/2^3)3 (/1^3)3  (/2^3)3 |
+
+    (/1^@3)3  (/2^3)3 (/1^3)3  (/2^3)3  |
+
+    (/1^@3)3  (/2^3)3 (/1^3)3  (/2^3)-/22  |
+
+    (1^@3)3   (/2^3)3 (/1^3)(/1^3) (/2^3)3  |
+    ```
+    ![](doc/img/percussion.png)
+    
 #### Chords
 
   * Pitches inside `( )` are sounded simultaneously and sustained.
@@ -352,106 +454,6 @@ In the chord examples above, all the notes in each chord end when the next chord
   * All voices start at time 0. If you want a voice to be silent at the beginning, you must supply measures of rest.
   * Divisi are supported within voices. See the last bar of the bass line in the example and the Polyphony section, above.
 
-#### Tempo
-  * Tbon supports two kinds of tempo markers, absolute and relative.
-  * Either may appear anywhere except within a beat.
-  * Absolute tempo is specified like this in beats per minute:  `T=100`
-  * Relative tempo is specified like this: `t=0.9`
-  * Relative tempo is a floating point value greater than 0.
-  * Relative tempo represents a fraction (or multiple) of the most recent absolute tempo.
-  * `T=100 a b t=0.9 c d | t=1.0 e f g a |` means "Play the first two notes at 100 bpm, the next two at 90 bpm and the remainder at 100 bpm.
-  * Relative tempi are multiplied by the current absolute tempo and the result is rounded to the nearest integer.
-
-#### Key Signatures
-  * All common major and minor key signatures are recognized. Use lower case for minor, upper for major.
-  * Example: `K=b` for B minor, `K=E@` for E-flat major.
-  * Majors: `C G D A  E  B  C@ F# G@ C# D@ A@ E@ B@ F`
-  * Minors: `a e b f# c# g# a@ d# e@ a# b@ f  c  g  d`
-  * Placement: At the start of any measure before the first beat of the measure.
-  * You may omit accidentals that are in the key when writing notation.
-  * Numeric notation is interpreted so that `1` corresponds to the tonic of the most recent key signature.
-    * In minor keys the 3rd, 6th, and 7th degrees are flatted.
-    * Example: `K=f 12 34 56 71 |` produces the natural minor scale starting on F.
-
-#### Velocity (Loudness)
-  * Specify with `V=` anywhere between (but not within) beats.
-  * Default is V=0.8 which corresponds to midi velocity 101 for all notes.
-  * Allowed values are between 0.0 (silence) and 1.0 (maximum, midi 127).
-  * Affects all following notes until changed.
-  * See examples/echo.tbn for an example.
-      ```
-      /* Testing velocity changes. */
-      V=0.8 12 34 5 - | V=0.5 /12 34 5 - |
-      V=0.8 54 32 1 - | V=0.5 ^54 32 1 - |
-        ```
-#### De-emphasis
-  controls the amount of emphasis given to the downbeat. It's specified as the amount of de-emphasis applied to the other beats in the measure to make the math cleaner.
-  * Syntax `D=N` where N is between 0.0 and 1.0 inclusive.
-  * Default is `D=0.0` (no de-emphasis, all notes equal velocity).
-  * Velocities of notes that aren't on the downbeat are scaled by (1.0 - N).
-  * Placement: At the start of any measure before the first beat of the measure.
-  * Affects all following notes until changed.
-  * See examples/emphasis.tba
-      ```
-      /* Illustrates effect of de-emphasis */
-
-      /* None */
-      K=C T=120 D=0.0
-      c d e | f g a | b c d | c - - |
-
-      /* Subtle */
-      D=0.1
-      /c d e | f g a | b c d | c - - |
-
-      /* Quite noticeable */
-      D=0.3
-      /c d e | f g a | b c d | c - - |
-
-      /* Almost certainly too much */
-      D=0.5
-      /c d e | f g a | b c d | c - - |
-      ```
-#### Channel
-
-By default, tbon assigns MIDI channel number 1 to all notes in all parts.  You can explicitly assign different channel numbers.
-
-  * Syntax: `C=N`
-  * Valid values for N are 1 thru 16, inclusive.
-  * Different parts may have different channel numbers.
-#### Percussion
-  * To write percussion, use `C=10` and follow the General MIDI Percussion Keymap.
-    * See [Percussion Keymap](http://computermusicresource.com/GM.Percussion.KeyMap.html)
-    * Tbon doesn't do anything special for percussion. It relies on your synthesizer to apply the standard interpretation to note events on channel 10.
-  * Example:
-    ```
-    /* Bass drum, snare, ride pattern */
-
-    /* Bass drum GM #36, snare #38, ride #51 */
-    D=0.2
-    C=10 (//1^@3)3 (/2^3)3 (/1^3)3  (/2^3)3 |
-
-    (/1^@3)3  (/2^3)3 (/1^3)3  (/2^3)3  |
-
-    (/1^@3)3  (/2^3)3 (/1^3)3  (/2^3)-/22  |
-
-    (1^@3)3   (/2^3)3 (/1^3)(/1^3) (/2^3)3  |
-    ```
-    ![](doc/img/percussion.png)
-#### Comments
-  * Tbon supports C-style comments that may span multiple lines.
-  * Comments start with `/*` and end with `*/`
-  * Placement: anywhere except inside a beat.
-    * `/* ok */ a b /* ok, too. */ c d | /* ok, too. */ e f g a | /* and this is also ok. */`
-  * See examples/comments.tbn
-  ```
-   /* 
-   This is a comment that
-   spans three lines and that, 
-   my friends, is perfectly fine. 
-   */
-   1 2 3 - | /* comment between bars */ 1 2 3 - |
-   /* Coment at end of file */
-  ```
 
 ## Local Installation
 There's no installer at present so if you want to run tbon on your own computer, you'll need to clone this repository or copy the files. Installing tbon locally provides some advantages over the Live Demo site. You can
