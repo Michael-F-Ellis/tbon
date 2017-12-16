@@ -40,7 +40,9 @@ For my own use, midi playback is usually all that's needed. For files I share wi
 I'm not a music teacher so I can't say I'm using Tbon **for teaching music** but I do believe a musically inclined child could grasp the basics in a very short time.
 
 ## Live Demo
-__You can try tbon without installing anything.__ There's a demo server that's running at (http://ellisgrant.pythonanywhere.com) but do skip down and skim the [Tutorial](#tutorial) section of this page beforehand. If you decide you'd like to run tbon on your own computer, see the [Local Installation](#local-installation) section of this README.
+__You can try tbon without installing anything.__ There's a demo server that's running at (http://ellisgrant.pythonanywhere.com) but do skip down and skim the [Tutorial](#tutorial) section of this page beforehand. *The demo works best on a computer with a physical keyboard. Your smartphone's virtual keyboard layout and autocorrection will make it a frustrating experience.*
+
+If you decide you'd like to install and run tbon on your own computer, see the [Local Installation](#local-installation) section of this README.
 
 ## Tutorial
 Let's begin with a couple of familiar tunes that illustrate the majority of tbon's notation syntax.
@@ -61,7 +63,7 @@ Let's begin with a couple of familiar tunes that illustrate the majority of tbon
   
   We use `z` for rests. By itself, the `z` indicates that the first beat is silent.
   
-  The next symbol is a dash (`-`, keyboard 'minus'). Dashes extend the preceding note or rest. In this case it comes after a rest, meaning that beat two of this measure is alsosilent. (Note: It could have been written `z z` and produced the same music)
+  The next symbol is a dash (`-`, keyboard 'minus'). Dashes extend the preceding note or rest. In this case it comes after a rest, meaning that beat two of this measure is also silent. (Note: We could have written Beats 1 and 2 as `z z` and produced the same music)
   
   Beat 3 of the first measure is `cc`. It represents a pair of 'c' notes, each lasting half the beat. That's a really important principle in tbon: *When notes or rests or dashes appear together without spaces between them, they divide one beat into equal parts.* So if the beat is a quarter-note, `cc` represents two eighth-notes.
   
@@ -133,13 +135,13 @@ are represented by `a b c d e f g`.
   * Tbon also supports movable pitches `1 2 3 4 5 6 7`.
     * `1` corresponds to the tonic of the current key. 
 
-#### Hyphen  `-`
-indicates continuation within and across beats (i.e. a tie).
+#### Dash  `-`
+continues notes and rests within and across beats (i.e. a tie). The tbon documentation sometimes refers to dashes as "holds."
 
 #### Rests
 are indicated by letter `z` or underscore `_`.
 
-  * Notice that rests are also extended by hyphens
+  * Notice that rests, like pitches,  are extended by dashes.
     ```
     cz - cz | -c - z |
     ```
@@ -310,13 +312,11 @@ In the chord examples above, all the notes in each chord end when the next chord
     ```
     ![](doc/img/chord_rest.png)
 
-#### Rolls
-  * Pitches inside `(: )` are attacked in sequence over the duration of 1 sub-beat and sustained afterwards in the same manner as chords.
-
-#### Ornaments
-  * Pitches inside `(~ )` are attacked in sequence over the  duration of 1 sub-beat. 
-  * Each pitch save the last ends when its successor begins.
-  * The last pitch may be sustained by hyphens following the ornament.
+#### Rolls and Ornaments
+  * **Roll** - Pitches inside `(: )` are attacked in sequence over the duration of 1 sub-beat and sustained afterwards in the same manner as chords.
+  * **Ornament** Pitches inside `(~ )` are attacked in sequence over the  duration of 1 sub-beat. 
+    * Each pitch save the last ends when its successor begins.
+    * The last pitch may be sustained by hyphens following the ornament.
   * Example with rolls, chords and ornaments:
     ```
     /* Demonstrates chords,rolls and ornaments */
@@ -341,13 +341,14 @@ In the chord examples above, all the notes in each chord end when the next chord
 
   * You may use as many voices as needed.
   * The voices must have contiguous numbers starting at 1.
-  * Voice 1 is special. Tempo changes must be given there. Tempo changes in other voices are ignored.
-  * The following must be supplied per voice:
-    * Key Signature
-    * Beat Note
-    * Velocity
-    * De-emphasis
-  * You may interleave part segments in different lines as you wish, or write each voice out in it's entirety.
+  * **Voice 1 is special.** Tempo changes must be given there. Tempo changes in other voices are ignored.
+  * The following should be supplied per voice:
+    * Key Signature (K)
+    * Beat Note (B)     
+    * Velocity (V)
+    * De-emphasis (D)
+    * MIDI Channel (C)
+  * You may interleave part segments in different lines as you wish, or write each voice out in its entirety.
   * All voices start at time 0. If you want a voice to be silent at the beginning, you must supply measures of rest.
   * Divisi are supported within voices. See the last bar of the bass line in the example and the Polyphony section, above.
 
