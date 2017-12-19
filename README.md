@@ -338,7 +338,7 @@ Pitches move up or down using the Lilypond relative pitch entry convention.
   ```
 
 ### Extended Notation
-  With the basic notation you can quickly write any single voice melody no matter how complex the rhythm. That's quite a lot for only a handful of symbols. Continue reading to learn how to write [percussion](percussion), [chords](chords), [ornaments](rolls-and-ornaments) and [multiple voices](multiple-voices).
+  With the basic notation you can quickly write any single voice melody no matter how complex the rhythm. That's quite a lot for only a handful of symbols. Continue reading to learn how to write [percussion](#percussion), [chords](#chords), [ornaments](#rolls-and-ornaments) and [multiple voices](#multiple-voices).
 
 #### Channel
 
