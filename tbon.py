@@ -78,14 +78,20 @@ def make_midi(tbon, outfile,
             numerator = m[2]
             denominator = m[3]
             ## midi denominator specified a power of 2
-            midi_denom = {2:1, 4:2, 8:3}[denominator]
+            midi_denom = {2:1, 4:2, 8:3, 16:4}[denominator]
             ## We want to make the midi metronome match beat duration.
             ## This requires recognizing compound meters
             ## See http://midiutil.readthedocs.io/en/1.1.3/class.html
             ## for discussion of arguments to addTimeSignature()
             ## including clocks_per_tick.
-            if denominator == 8 and (numerator % 3 == 0):
+            if denominator == 16 and (numerator % 3 == 0):
+                metro_clocks = 18
+            elif denominator == 16:
+                metro_clocks = 6
+            elif denominator == 8 and (numerator % 3 == 0):
                 metro_clocks = 36
+            elif denominator == 8:
+                metro_clocks = 12
             elif denominator == 4:
                 metro_clocks = 24
             elif denominator == 2:
