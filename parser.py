@@ -761,6 +761,12 @@ class MidiEvaluator():
         """
         state = self.processing_state
         pitchname = node.text.strip()
+        if pitchname not in self.pitch_order:
+            ## User is trying to mix alpha and numeric pitches
+            msg = ("\nInvalid pitch character, '{}'. "
+                   "(Can't mix numeric and alpha pitches in same file.)")
+            msg = msg.format(pitchname)
+            raise ValueError(msg)
         state['octave'] += self.octave_change(state['pitchname'], pitchname)
 
         if state['alteration'] != 0:

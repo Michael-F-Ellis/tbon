@@ -40,10 +40,6 @@ def make_midi(tbon, outfile,
                  numbers (1234567) with 1 corresponding to 'c'.
     """
 
-    ## MIDIUtil zero indexs, so channel 9 is 10,
-    ## the normal channel for percussion
-    metronome_channel = 9
-
     parts = tbon.output
     numparts = len(parts)
     print("Found {} parts".format(numparts))
