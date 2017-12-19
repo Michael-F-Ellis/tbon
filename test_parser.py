@@ -24,6 +24,10 @@ def test_subbeat_pre_evaluation():
     assert mp.subbeat_starts == [(0.0,), (1.0,), (2.0, 2.5), (3.0,),
                                  (4.0, 4.5), (5.0,), (6.0,), (7.0,)]
     mp = MidiPreEvaluator()
+    mp.eval('B=8  zg a - (ab) |')
+    assert mp.subbeat_starts == [(0.0, 0.25), (0.5,), (1.0,), (1.5,)]
+
+    mp = MidiPreEvaluator()
     mp.eval('#d - ef z | B=8  -g a - (ab) |')
     assert mp.subbeat_starts == [(0.0,), (1.0,), (2.0, 2.5), (3.0,),
                                  (4.0, 4.25), (4.5,), (5.0,), (5.5,)]
@@ -328,8 +332,12 @@ def test_de_emphasis():
              ignore_velocity=False)
 
 def test_beatspec():
+    evaluate('B=8 #d - - - |', [(63, 0.0, 2.0)])
+    evaluate('B=8. #d - - - |', [(63, 0.0, 3.0)])
     evaluate('B=4 #d - - - |', [(63, 0.0, 4.0)])
     evaluate('B=4. #d - - - |', [(63, 0.0, 6.0)])
+    evaluate('B=2 #d - - - |', [(63, 0.0, 8.0)])
+    evaluate('B=2. #d - - - |', [(63, 0.0, 12.0)])
 
 def test_time_signature():
     sig = time_signature('4.', 3, 0.0)
