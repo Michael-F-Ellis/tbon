@@ -40,7 +40,8 @@ def parse(source):
         channel = "C=" chnum
         partnum = ~r"[1-9][0-9]*"i
         floatnum = ~r"\d*\.?\d+"i
-        chnum = "16" / "15" / "14" / "13" / "12" / "11" / "10" / ~r"\d"i
+        chnum = ~r"\d*\.?\d+"i
+        #chnum = "16" / "15" / "14" / "13" / "12" / "11" / "10" / ~r"\d"i
         beat = subbeat+
         barline = "|" / ":"
         extendable = chord / roll / ornament / pitch / rest
@@ -190,8 +191,12 @@ class MidiPreEvaluator():
         if self.current_part == 0:
             state = self.processing_state
             newtempo = int(round(float(node.children[1].text)))
-            assert newtempo != 0
-            state['basetempo'] = state['tempo'] = newtempo
+            if newtempo > 1:
+                state['basetempo'] = state['tempo'] = newtempo
+            else:
+                msg = ("\nInvalid Tempo, {}. "
+                       "Tempo must be greater than 1.")
+                raise ValueError(msg.format(newtempo))
             self.insert_tempo_meta(state)
         else:
             print(
@@ -201,6 +206,13 @@ class MidiPreEvaluator():
         """ Insert a key signature """
         state = self.processing_state
         keyname = node.children[1].text.strip()
+        if keyname in keysigs.KEYSIGS.keys():
+            self.processing_state['keyname'] = keyname
+        else:
+            msg = ("\n Invalid key name, '{}'. "
+                   "Must be one of {}.")
+            validkeys = ', '.join(sorted(keysigs.KEYSIGS.keys()))
+            raise ValueError(msg.format(keyname, validkeys))
         index = state['beat_index']
         sig = keysigs.MIDISIGS[keyname]
         self.meta_output.append(('K', index, sig))
@@ -210,8 +222,12 @@ class MidiPreEvaluator():
         if self.current_part == 0:
             state = self.processing_state
             xtempo = float(node.children[1].text)
-            assert xtempo != 0.0
-            state['tempo'] = int(round(xtempo * state['basetempo']))
+            if xtempo > 0.0:
+                state['tempo'] = int(round(xtempo * state['basetempo']))
+            else:
+                msg = ("\nInvalid relative tempo, {}. "
+                       "Must be greater than 0.0")
+                raise ValueError(msg.format(xtempo))
             self.insert_tempo_meta(state)
         else:
             print(
@@ -497,8 +513,12 @@ class MidiEvaluator():
         if self.current_part == 0:
             state = self.processing_state
             newtempo = float(node.children[1].text)
-            assert newtempo != 0.0
-            state['basetempo'] = state['tempo'] = newtempo
+            if newtempo > 1:
+                state['basetempo'] = state['tempo'] = newtempo
+            else:
+                msg = ("\nInvalid Tempo, {}. "
+                       "Tempo must be greater than 1.")
+                raise ValueError(msg.format(newtempo))
         else:
             print(
                 "Ignoring tempo spec in part {}.".format(self.current_part))
@@ -518,22 +538,34 @@ class MidiEvaluator():
         """ Change the current velocity """
         state = self.processing_state
         newvelocity = float(node.children[1].text)
-        assert 0.0 <= newvelocity <= 1.0
-        state['velocity'] = newvelocity
+        if 0.0 <= newvelocity <= 1.0:
+            state['velocity'] = newvelocity
+        else:
+            msg = ("\nInvalid velocity, '{}'. "
+                   "Must be between 0.0 and 1.0, inclusive")
+            raise ValueError(msg.format(newvelocity))
 
     def channel(self, node, children):
         """ Change the current channel """
         state = self.processing_state
         newchannel = int(node.children[1].text)
-        assert 1 <= newchannel <= 16
-        state['channel'] = newchannel
+        if 1 <= newchannel <= 16:
+            state['channel'] = newchannel
+        else:
+            msg = ("\nInvalid channel number, {}. "
+                   "Must be between 1 and 16, inclusive.")
+            raise ValueError(msg.format(newchannel))
 
     def de_emphasis(self, node, children):
         """ Change the current de_emphasis """
         state = self.processing_state
         newde_emphasis = float(node.children[1].text)
-        assert 0.0 <= newde_emphasis <= 1.0
-        state['de_emphasis'] = 1.0 - newde_emphasis
+        if 0.0 <= newde_emphasis <= 1.0:
+            state['de_emphasis'] = 1.0 - newde_emphasis
+        else:
+            msg = ("\nInvalid De-emphasis, '{}'. "
+                   "Must be between 0.0 and 1.0, inclusive.")
+            raise ValueError(msg.format(newde_emphasis))
 
     def bar(self, node, children):
         """ Clear any accidentals """
@@ -945,8 +977,12 @@ class MidiEvaluator():
     def keyname(self, node, children):
         """ Install new keyname """
         kn = node.text.strip()
-        assert kn in keysigs.KEYSIGS.keys()
-        self.processing_state['keyname'] = kn
+        if kn in keysigs.KEYSIGS.keys():
+            self.processing_state['keyname'] = kn
+        else:
+            msg = ("\n Invalid key name, '{}'. "
+                   "Must be one of {}.")
+            raise ValueError(msg.format(kn, keysigs.KEYSIGS.keys()))
 
     def set_bar_accidental(self, pitchname, octave, value):
         """
