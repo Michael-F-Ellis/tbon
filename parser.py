@@ -41,7 +41,6 @@ def parse(source):
         partnum = ~r"[1-9][0-9]*"i
         floatnum = ~r"\d*\.?\d+"i
         chnum = ~r"\d*\.?\d+"i
-        #chnum = "16" / "15" / "14" / "13" / "12" / "11" / "10" / ~r"\d"i
         beat = subbeat+
         barline = "|" / ":"
         extendable = chord / roll / ornament / pitch / rest
