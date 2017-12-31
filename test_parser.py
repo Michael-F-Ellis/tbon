@@ -44,14 +44,14 @@ def test_tempo_change():
     mp = MidiPreEvaluator()
     mp.eval('#d - T=60 ef z |')
     assert mp.subbeat_lengths == [1.0, 1.0, 0.5, 1.0]
-    assert mp.meta_output == [('T', 0, 120), ('T', 2, 60), ('M', 0, 4, 4)]
+    assert mp.meta_output == [('T', 0, 120), ('T', 2, 60), ('M', 0, 4, 4, 0)]
     evaluate('T=120 #d - | T=60 - - |', [(63, 0.0, 4.0)])
 
 def test_relative_tempo_change():
     mp = MidiPreEvaluator()
     mp.eval('#d - t=0.5 ef z |')
     assert mp.subbeat_lengths == [1.0, 1.0, 0.5, 1.0]
-    assert mp.meta_output == [('T', 0, 120), ('T', 2, 60), ('M', 0, 4, 4)]
+    assert mp.meta_output == [('T', 0, 120), ('T', 2, 60), ('M', 0, 4, 4, 0)]
     evaluate('T=120 #d - | t=0.5  - - |', [(63, 0.0, 4.0)])
     evaluate('#d - | t=0.5  - - |', [(63, 0.0, 4.0)])
 
@@ -59,8 +59,19 @@ def test_keysig_insert():
     mp = MidiPreEvaluator()
     mp.eval('K=D #d - t=0.5 ef z |')
     assert mp.subbeat_lengths == [1.0, 1.0, 0.5, 1.0]
-    assert mp.meta_output == [('K', 0, (2, 0)), ('T', 0, 120),
-                              ('T', 2, 60), ('M', 0, 4, 4)]
+    assert mp.meta_output == [('K', 0, (2, 0), 0), ('T', 0, 120),
+                              ('T', 2, 60), ('M', 0, 4, 4, 0)]
+    mp = MidiPreEvaluator()
+    mp.eval('P=1 K=C #d - t=0.5 ef z | P=2 K=D #d - ef z |')
+    assert mp.meta_output[0] == ('K', 0, (0, 0), 0)
+    assert mp.meta_output[4] == ('K', 0, (2, 0), 1)
+
+def test_polymeters():
+    mp = MidiPreEvaluator()
+    mp.eval('P=1 c d e | P=2 B=4. efg abc |')
+    assert mp.meta_output == [('T', 0, 120), ('M', 0.0, 3, 4, 0),
+                              ('M', 0.0, 6, 8, 1)]
+
 
 def test_beat_map():
     mp = MidiPreEvaluator()
@@ -340,8 +351,8 @@ def test_beatspec():
     evaluate('B=2. #d - - - |', [(63, 0.0, 12.0)])
 
 def test_time_signature():
-    sig = time_signature('4.', 3, 0.0)
-    assert sig == ('M', 0.0, 9, 8)
+    sig = time_signature('4.', 3, 0.0, 0)
+    assert sig == ('M', 0.0, 9, 8, 0)
 
 def test_channel():
     evaluate('C=16 c |', [(60, 0.0, 1.0, 0.8, 16)],

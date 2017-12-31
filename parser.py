@@ -94,12 +94,12 @@ TIMESIG_LUT = {
     "8":(1, 8),
 }
 
-def time_signature(beatspec, beatcount, index):
+def time_signature(beatspec, beatcount, index, part):
     """
     Create a new time signature at index.
     """
     multiplier, numerator = TIMESIG_LUT[beatspec]
-    return ('M', index, multiplier*beatcount, numerator)
+    return ('M', index, multiplier*beatcount, numerator, part)
 
 class MidiPreEvaluator():
     """
@@ -115,7 +115,7 @@ class MidiPreEvaluator():
         self.beat_lengths = []
         self.subbeat_starts = []
         self.subbeat_lengths = []
-        self.partstates = {0: self.new_part_state()}
+        self.partstates = {0: self.new_part_state(0)}
         self.processing_state = self.partstates[0]
         self.current_part = 0
     #pylint: enable=dangerous-default-value
@@ -163,13 +163,13 @@ class MidiPreEvaluator():
             self.processing_state = self.partstates[newpindex]
         except KeyError:
             ## Doesn't exist yet. Create it.
-            pstate = self.new_part_state()
+            pstate = self.new_part_state(newpindex)
             self.partstates[newpindex] = pstate
             self.processing_state = self.partstates[newpindex]
             self.current_part = newpindex
             self.beat_map[newpartnumber] = []
 
-    def new_part_state(self):
+    def new_part_state(self, pindex):
         """ Returns a new part state dict """
         return dict(
             basetempo=self.first_tempo,
@@ -180,7 +180,7 @@ class MidiPreEvaluator():
             chord_tone_count=0,
             subbeats=0,
             beatspec="4",
-            timesig=('M', 0.0, 4, 4),
+            timesig=('M', 0.0, 4, 4, pindex),
             subbeat_lengths=[],
             subbeat_starts=[],
             )
@@ -214,7 +214,8 @@ class MidiPreEvaluator():
             raise ValueError(msg.format(keyname, validkeys))
         index = state['beat_index']
         sig = keysigs.MIDISIGS[keyname]
-        self.meta_output.append(('K', index, sig))
+        part = self.current_part
+        self.meta_output.append(('K', index, sig, part))
 
     def relativetempo(self, node, children):
         """ Adjust the current tempo without altering the base tempo """
@@ -289,8 +290,8 @@ class MidiPreEvaluator():
         bar_index = state['beat_index'] - state['bar_beat_count'] * beat_length
         timesig = time_signature(state['beatspec'],
                                  state['bar_beat_count'],
-                                 bar_index)
-        if bar_index == 0 or state['timesig'][-2:] != timesig[-2:]:
+                                 bar_index, self.current_part)
+        if bar_index == 0 or state['timesig'][-3:] != timesig[-3:]:
             self.meta_output.append(timesig)
             state['timesig'] = timesig
 

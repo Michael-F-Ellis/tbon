@@ -55,13 +55,14 @@ def make_midi(tbon, outfile,
     MyMIDI = MIDIFile(numTracks, adjust_origin=True,
                       removeDuplicates=False, deinterleave=False)
     #MyMIDI.addTempo(track, 0, tempo)
-    track = 0
+    trk0 = 0
     for m in meta:
         if m[0] == 'T':
-            MyMIDI.addTempo(track, m[1], m[2])
-        elif m[0] == 'K':
+            MyMIDI.addTempo(trk0, m[1], m[2])
+        elif m[0] == 'K' and metronome != 1:
             time = m[1]
             sf, mi = m[2]
+            track = m[3]
             mode = MINOR if mi == 1 else MAJOR
             accidentals = abs(sf)
             acc_type = SHARPS if sf > 0 else FLATS
@@ -73,6 +74,7 @@ def make_midi(tbon, outfile,
             time = m[1]
             numerator = m[2]
             denominator = m[3]
+            track = m[4]
             ## midi denominator specified a power of 2
             midi_denom = {2:1, 4:2, 8:3, 16:4}[denominator]
             ## We want to make the midi metronome match beat duration.
@@ -111,7 +113,7 @@ def make_midi(tbon, outfile,
             add_notes(notes, track)
     elif metronome == 1:
         ## Metronome output only.
-        add_notes(metronotes, track)
+        add_notes(metronotes, trk0)
     else:
         ## Both
         for track, notes in enumerate(parts):
