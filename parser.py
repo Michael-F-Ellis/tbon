@@ -29,7 +29,7 @@ def parse(source):
         bar = (wsc* (meta / beat) wsc+)+ barline
         meta = beatspec / key / tempo /
                relativetempo / velocity /
-               de_emphasis / channel
+               de_emphasis / channel / instrument
         beatspec = "B=" ("2." / "2" / "4." / "4" / "8." / "8")
         key = "K=" keyname
         keyname = ~r"[a-gA-G](@|#)?"
@@ -39,6 +39,8 @@ def parse(source):
         de_emphasis = "D=" floatnum
         channel = "C=" chnum
         partnum = ~r"[1-9][0-9]*"i
+        instrument = "I=" inum
+        inum = ~r"[1-9][0-9]*"i
         floatnum = ~r"\d*\.?\d+"i
         chnum = ~r"\d*\.?\d+"i
         beat = subbeat+
@@ -176,6 +178,7 @@ class MidiPreEvaluator():
             tempo=self.first_tempo,
             beat_index=0,
             bar_beat_count=0,
+            channel=1,
             in_chord=False,
             chord_tone_count=0,
             subbeats=0,
@@ -184,6 +187,34 @@ class MidiPreEvaluator():
             subbeat_lengths=[],
             subbeat_starts=[],
             )
+
+    def channel(self, node, children):
+        """ Change the current channel """
+        state = self.processing_state
+        newchannel = int(node.children[1].text)
+        if 1 <= newchannel <= 16:
+            state['channel'] = newchannel
+        else:
+            msg = ("\nInvalid channel number, {}. "
+                   "Must be between 1 and 16, inclusive.")
+            raise ValueError(msg.format(newchannel))
+
+    def instrument(self, node, children):
+        """
+        Change the midi instrument on the current track and channel.
+        """
+        state = self.processing_state
+        newinstrument = int(node.children[1].text)
+        if 1 <= newinstrument <= 128:
+            index = state['beat_index']
+            state['instrument'] = newinstrument
+            chan = state['channel']
+            part = self.current_part
+            self.meta_output.append(('I', index, newinstrument, part, chan))
+        else:
+            msg = ("\nInvalid instrument number, {}. "
+                   "Must be between 1 and 128, inclusive.")
+            raise ValueError(msg.format(newinstrument))
 
     def tempo(self, node, children):
         """ Install a new tempo """

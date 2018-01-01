@@ -66,6 +66,12 @@ def test_keysig_insert():
     assert mp.meta_output[0] == ('K', 0, (0, 0), 0)
     assert mp.meta_output[4] == ('K', 0, (2, 0), 1)
 
+def test_instrument():
+    mp = MidiPreEvaluator()
+    mp.eval('I=25 K=D #d - t=0.5 ef z |')
+    assert mp.meta_output == [('I', 0, 25, 0, 1), ('K', 0, (2, 0), 0),
+                              ('T', 0, 120), ('T', 2, 60), ('M', 0, 4, 4, 0)]
+
 def test_polymeters():
     mp = MidiPreEvaluator()
     mp.eval('P=1 c d e | P=2 B=4. efg abc |')

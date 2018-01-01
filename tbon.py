@@ -94,11 +94,17 @@ def make_midi(tbon, outfile,
                 metro_clocks = 24
             elif denominator == 2:
                 metro_clocks = 48
-
             MyMIDI.addTimeSignature(track, time,
                                     numerator,
                                     denominator=midi_denom,
                                     clocks_per_tick=metro_clocks)
+        elif m[0] == 'I' and metronome != 1:
+            ## Instrument change
+            time = m[1]
+            instrument = m[2] - 1 ## convert to 0 index
+            track = m[3] + 1
+            chan = m[4] - 1
+            MyMIDI.addProgramChange(track, chan, time, instrument)
 
     def add_notes(source, trk):
         """ Add all notes in source to trk on chan. """

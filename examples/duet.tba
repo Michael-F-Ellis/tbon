@@ -1,0 +1,9 @@
+/* Duet */
+
+/* Flute (GM 74) */
+P=1 C=1 I=74 c d e f | g a g - |  a g f e | d -  - -  | c d c - |
+/* Nylon string guitar (GM 25) */
+P=2 C=2 I=25 a g f e | d - b c | ^c d c g | a g fe d  | c - - - |
+
+
+
