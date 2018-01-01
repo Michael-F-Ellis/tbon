@@ -338,35 +338,10 @@ Pitches move up or down using the Lilypond relative pitch entry convention.
   ```
 
 ### Extended Notation
-  With the basic notation you can quickly write any single voice melody no matter how complex the rhythm. That's quite a lot for only a handful of symbols. Continue reading to learn how to write [percussion](#percussion), [chords](#chords), [ornaments](#rolls-and-ornaments) and [multiple voices](#multiple-voices).
+  With the basic notation you can quickly write any single voice melody no matter how complex the rhythm. That's quite a lot for only a handful of symbols. Continue reading to learn how to write  [chords](#chords), [ornaments](#rolls-and-ornaments), [percussion](#percussion) and [multiple voices](#multiple-voices) with different [instrument sounds](#instruments).
 
-#### Channel
 
-By default, tbon assigns MIDI channel number 1 to all notes in all parts.  You can explicitly assign different channel numbers. The most common reason for changing the channel number is writing percusssion.
 
-  * Syntax: `C=N`
-  * Valid values for N are 1 thru 16, inclusive.
-  * Different parts may have different channel numbers.
-#### Percussion
-  * To write percussion, use `C=10` and follow the General MIDI Percussion Keymap.
-    * See [Percussion Keymap](http://computermusicresource.com/GM.Percussion.KeyMap.html)
-    * Tbon doesn't do anything special for percussion. It relies on your synthesizer to apply the standard interpretation to note events on channel 10.
-  * Example:
-    ```
-    /* Bass drum, snare, ride pattern */
-
-    /* Bass drum GM #36, snare #38, ride #51 */
-    D=0.2
-    C=10 (//1^@3)3 (/2^3)3 (/1^3)3  (/2^3)3 |
-
-    (/1^@3)3  (/2^3)3 (/1^3)3  (/2^3)3  |
-
-    (/1^@3)3  (/2^3)3 (/1^3)3  (/2^3)-/22  |
-
-    (1^@3)3   (/2^3)3 (/1^3)(/1^3) (/2^3)3  |
-    ```
-    ![](doc/img/percussion.png)
-    
 #### Chords
 
   * Pitches inside `( )` are sounded simultaneously and sustained.
@@ -433,7 +408,7 @@ In the chord examples above, all the notes in each chord end when the next chord
     6 7 (~171717)6 (572)(~1767) | 15 35 (//1^1351) - |
     ```
     ![Ornaments](doc/img/ornaments.png)
-    
+
 #### Multiple Voices
 
   Use the _partswitch_, `P=n` to write music in multiple parts.
@@ -461,6 +436,51 @@ In the chord examples above, all the notes in each chord end when the next chord
   * All voices start at time 0. If you want a voice to be silent at the beginning, you must supply measures of rest.
   * Divisi are supported within voices. See the last bar of the bass line in the example and the Polyphony section, above.
 
+#### Channel
+
+By default, tbon assigns MIDI channel number 1 to all notes in all parts.  You can explicitly assign different channel numbers. The most common reasons for changing the channel number is to specify a different [instrument sound](#instruments) or to write [percussion](#percussion).
+
+  * Syntax: `C=N`
+  * Valid values for N are 1 thru 16, inclusive.
+  * Different parts may have different channel numbers.
+#### Percussion
+  * To write percussion, use `C=10` and follow the General MIDI Percussion Keymap.
+    * See [Percussion Keymap](http://computermusicresource.com/GM.Percussion.KeyMap.html)
+    * Tbon doesn't do anything special for percussion. It relies on your synthesizer to apply the standard interpretation to note events on channel 10.
+  * Example:
+    ```
+    /* Bass drum, snare, ride pattern */
+
+    /* Bass drum GM #36, snare #38, ride #51 */
+    D=0.2
+    C=10 (//1^@3)3 (/2^3)3 (/1^3)3  (/2^3)3 |
+
+    (/1^@3)3  (/2^3)3 (/1^3)3  (/2^3)3  |
+
+    (/1^@3)3  (/2^3)3 (/1^3)3  (/2^3)-/22  |
+
+    (1^@3)3   (/2^3)3 (/1^3)(/1^3) (/2^3)3  |
+    ```
+    ![](doc/img/percussion.png)
+
+#### Instruments
+  You may conveniently specify the instrument for each part using the numbering scheme from the General Midi [GM 1 Sound Set](https://www.midi.org/specifications/item/gm-level-1-sound-set). GM 1 provides for 128 different instrument sounds.
+  * Syntax: `I=N` where N is a number between 1 and 128 that corresponds to an instrument in the GM 1 Sound set.
+    * Default is Acoustic Grand Piano, `I=1`.
+  * Example
+  ```
+    /* Duet */
+
+    /* Flute (GM 74) */
+    P=1 C=1 I=74 c d e f | g a g - |  a g f e | d -  - -  | c d c - |
+    /* Nylon string guitar (GM 25) */
+    P=2 C=2 I=25 a g f e | d - b c | ^c d c g | a g fe d  | c - - - |
+  ```
+  ![](doc/img/duet.png)
+
+  * For multiple voice compositions, specify a distinct channel (see [above in this document](#channel)) for each instrument.
+  * You can have up to 15 different non-percussion instruments that can be active at any instant. This a limitation of the MIDI standard. It provides only 16 channels and one of them, channel 10, is reserved for percussion.
+    * The number of voices sharing a channel/instrument pair is not limited in tbon. You could have, for instance, 3 or more violin parts all specifying a String Ensemble sound on channel 5 `C=5 I=49`. The restriction is that you wouldn't be able to assign another instrument to channel 5.
 
 ## Local Installation
 There's no installer at present so if you want to run tbon on your own computer, you'll need to clone this repository or copy the files. Installing tbon locally provides some advantages over the Live Demo site. You can
